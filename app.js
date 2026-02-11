@@ -339,7 +339,13 @@ window.app = {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Global visibility: Everyone sees total counts
+            let callsCount = 0;
+            let pendingTasks = 0;
+            let openTickets = 0;
+            let recentCalls = [];
+
+            // Stats counts - Filter for standard users
+            // Stats counts - Global visibility
             callsCount = await db.calls.where('timestamp').aboveOrEqual(today.getTime()).count();
             pendingTasks = await db.activities.where('status').equals('pending').count();
             openTickets = await db.tickets.where('status').equals('Open').count();
@@ -351,6 +357,7 @@ window.app = {
             // --- Sparklines and Main Chart Logic ---
             app.renderCharts();
 
+            // Load recent recordings
             // Load recent recordings (Global)
             if (searchTerm) {
                 recentCalls = await db.calls.filter(c => c.clientName.toLowerCase().includes(searchTerm)).reverse().toArray();
@@ -423,11 +430,19 @@ window.app = {
         const ticketData = new Array(12).fill(0);
 
         try {
-            // Global chart data
-            const userCalls = await db.calls.toArray();
-            const userTickets = await db.tickets.toArray();
+            // Visibility-aware chart data
+            let userCalls = [];
+            let userTickets = [];
 
-            // Fetch calls and group by month
+            if (app.state.currentUser.role === 'admin') {
+                userCalls = await db.calls.toArray();
+                userTickets = await db.tickets.toArray();
+            } else {
+                userCalls = await db.calls.where('userId').equals(app.state.currentUser.id).toArray();
+                userTickets = await db.tickets.where('userId').equals(app.state.currentUser.id).toArray();
+            }
+
+            // Group calls by month
             userCalls.forEach(call => {
                 const date = new Date(call.timestamp);
                 if (date.getFullYear() === currentYear) {
@@ -452,10 +467,20 @@ window.app = {
         // Destroy previous chart if exists
         if (app.state.perfChartInstance) app.state.perfChartInstance.destroy();
 
-        // Pass filtered data pools for sparklines (Global)
-        const filteredCalls = await db.calls.toArray();
-        const filteredTickets = await db.tickets.toArray();
-        const filteredActivities = await db.activities.toArray();
+        // Pass filtered data pools for sparklines
+        let filteredCalls = [];
+        let filteredTickets = [];
+        let filteredActivities = [];
+
+        if (app.state.currentUser.role === 'admin') {
+            filteredCalls = await db.calls.toArray();
+            filteredTickets = await db.tickets.toArray();
+            filteredActivities = await db.activities.toArray();
+        } else {
+            filteredCalls = await db.calls.where('userId').equals(app.state.currentUser.id).toArray();
+            filteredTickets = await db.tickets.where('userId').equals(app.state.currentUser.id).toArray();
+            filteredActivities = await db.activities.where('userId').equals(app.state.currentUser.id).toArray();
+        }
 
         app.state.perfChartInstance = new Chart(ctx, {
             type: 'bar',
@@ -1209,7 +1234,7 @@ window.app = {
         board.innerHTML = '';
 
         // Global visibility for tickets
-        const tickets = await db.tickets.orderBy('createdAt').reverse().toArray();
+        let tickets = await db.tickets.orderBy('createdAt').reverse().toArray();
 
         if (searchTerm) {
             tickets = tickets.filter(t =>
@@ -1257,15 +1282,7 @@ window.app = {
         });
 
         // Column keys: 'Unassigned' first, 'Completed' second, then users
-        let columnKeys = [];
-
-        if (app.state.currentUser.role === 'admin') {
-            // Admin sees everyone
-            columnKeys = ['Unassigned', 'Completed', ...users.map(u => u.id)];
-        } else {
-            // Standard users see Unassigned, Completed, and THEMSELVES only
-            columnKeys = ['Unassigned', 'Completed', app.state.currentUser.id];
-        }
+        const columnKeys = ['Unassigned', 'Completed', ...users.map(u => u.id)];
 
         columnKeys.forEach(key => {
             const isCompleted = key === 'Completed';
@@ -1277,22 +1294,20 @@ window.app = {
             column.className = `kanban-column flex-shrink-0 w-80 ${isCompleted ? 'bg-gradient-to-br from-emerald-50/80 to-teal-50/80 border-emerald-200' : 'bg-gray-50/50 border-gray-100/50'} rounded-[2.5rem] p-4 flex flex-col min-h-[400px] border`;
             column.dataset.assigneeId = key;
 
-            // Drag & Drop events for column (disabled for Completed)
-            if (!isCompleted) {
-                column.ondragover = (e) => {
-                    e.preventDefault();
-                    column.classList.add('bg-brand-50/50');
-                };
-                column.ondragleave = () => {
-                    column.classList.remove('bg-brand-50/50');
-                };
-                column.ondrop = (e) => {
-                    e.preventDefault();
-                    column.classList.remove('bg-brand-50/50');
-                    const ticketId = e.dataTransfer.getData('text/plain');
-                    app.moveTicketToUser(parseInt(ticketId), key);
-                };
-            }
+            // Drag & Drop events for column
+            column.ondragover = (e) => {
+                e.preventDefault();
+                column.classList.add('bg-brand-50/50');
+            };
+            column.ondragleave = () => {
+                column.classList.remove('bg-brand-50/50');
+            };
+            column.ondrop = (e) => {
+                e.preventDefault();
+                column.classList.remove('bg-brand-50/50');
+                const ticketId = e.dataTransfer.getData('text/plain');
+                app.moveTicketToUser(parseInt(ticketId), key);
+            };
 
             column.innerHTML = `
                 <div class="flex items-center justify-between mb-2 px-2">
@@ -1351,27 +1366,42 @@ window.app = {
         });
     },
 
-    moveTicketToUser: async (ticketId, assigneeId) => {
+    moveTicketToUser: async (ticketId, targetId) => {
         try {
-            console.log(`🏷️ Moving ticket #${ticketId} to user: `, assigneeId);
+            console.log(`🏷️ Moving ticket #${ticketId} to: `, targetId);
 
-            // Ensure ID is handled correctly (Dexie uses numbers, Firestore uses strings)
-            const finalAssignee = (assigneeId === 'Unassigned' || !assigneeId) ? null :
-                (isNaN(assigneeId) ? assigneeId : parseInt(assigneeId));
+            let updates = {};
 
-            console.log('Normalized assigneeId:', finalAssignee);
+            if (targetId === 'Completed') {
+                // If dropped in Completed, mark as closed
+                updates = { status: 'Closed' };
+            } else {
+                // Otherwise update assignee and ensure status is open
+                const finalAssigneeId = (targetId === 'Unassigned' || !targetId) ? null :
+                    (isNaN(targetId) ? targetId : parseInt(targetId));
 
-            await db.tickets.update(ticketId, { assigneeId: finalAssignee });
-            console.log('✅ Ticket updated in local DB');
-
-            let userName = 'Unassigned';
-            if (finalAssignee) {
-                const user = await db.users.get(finalAssignee);
-                if (user) userName = user.name;
+                updates = {
+                    assigneeId: finalAssigneeId,
+                    status: 'Open'
+                };
             }
 
-            app.showToast(`Ticket #${ticketId} assigned to ${userName} `, 'success');
-            // Force a local refresh to show the change immediately
+            await db.tickets.update(ticketId, updates);
+            console.log('✅ Ticket updated in local DB', updates);
+
+            let message = `Ticket #${ticketId} updated`;
+            if (targetId === 'Completed') {
+                message = `Ticket #${ticketId} marked as Completed`;
+            } else {
+                let userName = 'Unassigned';
+                if (updates.assigneeId) {
+                    const user = await db.users.get(updates.assigneeId);
+                    if (user) userName = user.name;
+                }
+                message = `Ticket #${ticketId} assigned to ${userName}`;
+            }
+
+            app.showToast(message, 'success');
             await app.loadTickets();
         } catch (e) {
             console.error("❌ Error moving ticket", e);
@@ -1382,13 +1412,7 @@ window.app = {
     exportTickets: async () => {
         if (!app.state.currentUser) return;
 
-        let tickets;
-        if (app.state.currentUser.role === 'admin') {
-            tickets = await db.tickets.orderBy('createdAt').reverse().toArray();
-        } else {
-            const myTickets = await db.tickets.where('userId').equals(app.state.currentUser.id).toArray();
-            tickets = myTickets.sort((a, b) => b.createdAt - a.createdAt);
-        }
+        let tickets = await db.tickets.orderBy('createdAt').reverse().toArray();
 
         if (tickets.length === 0) {
             app.showToast('No tickets to export.', 'info');
@@ -1423,8 +1447,7 @@ window.app = {
         // Combine into CSV string
         const csvContent = [
             headers.join(','),
-            ...rows.map(r => r.map(field => `"${String(field).replace(/" / g, '""')
-                }"`).join(','))
+            ...rows.map(r => r.map(field => `"${String(field || '').replace(/"/g, '""')}"`).join(','))
         ].join('\n');
 
         // Trigger Download - Add UTF-8 BOM (\uFEFF) so Excel reads characters like bullet points correctly

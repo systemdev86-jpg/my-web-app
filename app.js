@@ -274,8 +274,13 @@ window.app = {
         if (sectionId === 'dashboard') await app.refreshDashboard();
         if (sectionId === 'calls') await app.loadRecordings();
         if (sectionId === 'activities') await app.loadActivities();
-        if (sectionId === 'tickets') await app.loadTickets();
+        if (sectionId === 'tickets') {
+            await app.loadTickets();
+            const depts = await db.departments.toArray();
+            app.updateDepartmentFilters(depts);
+        }
         if (sectionId === 'casenotes') await app.loadCaseNotes();
+        if (sectionId === 'departments') await app.loadDepartments();
         if (sectionId === 'users' && app.state.currentUser && app.state.currentUser.role === 'admin') await app.loadUsersList();
 
         // Reset search field
@@ -767,6 +772,103 @@ window.app = {
             console.error("Error updating user", e);
             app.showToast('Failed to update user.', 'error');
         }
+    },
+    // --- Departments Logic ---
+    loadDepartments: async () => {
+        const list = document.getElementById('departments-list');
+        const emptyState = document.getElementById('departments-empty-state');
+        const countBadge = document.getElementById('department-count-badge');
+
+        if (!list || !emptyState || !countBadge) return;
+
+        list.innerHTML = '';
+        const depts = await db.departments.toArray();
+        countBadge.innerText = `${depts.length} Total`;
+
+        if (depts.length === 0) {
+            emptyState.classList.remove('hidden');
+        } else {
+            emptyState.classList.add('hidden');
+            depts.forEach(dept => {
+                const div = document.createElement('div');
+                div.className = "bg-gray-50 p-6 rounded-3xl flex justify-between items-center group hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all duration-300 border border-transparent hover:border-gray-100";
+                div.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-brand-500 border border-gray-100">
+                            <i class="fa-solid fa-building text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-800 text-lg">${dept.name}</p>
+                            <p class="text-xs font-medium text-gray-400">ID: #${dept.id}</p>
+                        </div>
+                    </div>
+                    <button onclick="app.deleteDepartment(${dept.id})" 
+                        class="h-10 w-10 rounded-xl flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // Update filters in tickets section
+        app.updateDepartmentFilters(depts);
+    },
+
+    addDepartment: async () => {
+        const input = document.getElementById('new-department-input');
+        const name = input.value.trim();
+        if (!name) {
+            app.showToast('Please enter a department name.', 'error');
+            return;
+        }
+
+        await db.departments.add({ name });
+        input.value = '';
+        await app.loadDepartments();
+        app.showToast('Department added successfully', 'success');
+    },
+
+    deleteDepartment: async (id) => {
+        if (confirm('Delete this department? All linked ticket department associations will be cleared.')) {
+            await db.departments.delete(id);
+            // Optional: clear departmentId from tickets
+            await db.tickets.where('departmentId').equals(id).modify({ departmentId: null });
+            await app.loadDepartments();
+            app.showToast('Department deleted', 'info');
+        }
+    },
+
+    updateDepartmentFilters: (depts) => {
+        const ticketFilter = document.getElementById('ticket-filter-department');
+        const addTicketDept = document.getElementById('add-ticket-department');
+        const editTicketDept = document.getElementById('edit-ticket-department');
+
+        if (ticketFilter) {
+            const currentVal = ticketFilter.value;
+            ticketFilter.innerHTML = '<option value="">All Departments</option>';
+            depts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.innerText = d.name;
+                ticketFilter.appendChild(opt);
+            });
+            ticketFilter.value = currentVal;
+        }
+
+        [addTicketDept, editTicketDept].forEach(sel => {
+            if (sel) {
+                const currentVal = sel.value;
+                sel.innerHTML = '<option value="">No Department</option>';
+                depts.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.innerText = d.name;
+                    sel.appendChild(opt);
+                });
+                sel.value = currentVal;
+            }
+        });
     },
 
 
@@ -1288,6 +1390,8 @@ window.app = {
         const board = document.getElementById('tickets-kanban-board');
         board.innerHTML = '';
 
+        const deptFilter = document.getElementById('ticket-filter-department').value;
+
         // Global visibility for tickets
         let tickets = await db.tickets.orderBy('createdAt').reverse().toArray();
 
@@ -1305,9 +1409,13 @@ window.app = {
 
         if (searchTerm) {
             tickets = tickets.filter(t =>
-                (t.description && t.description.toLowerCase().includes(searchTerm)) ||
-                (t.clientName && t.clientName.toLowerCase().includes(searchTerm))
+                (t.description && t.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (t.clientName && t.clientName.toLowerCase().includes(searchTerm.toLowerCase()))
             );
+        }
+
+        if (deptFilter) {
+            tickets = tickets.filter(t => t.departmentId === parseInt(deptFilter));
         }
 
         if (tickets.length === 0) {
@@ -1636,6 +1744,10 @@ window.app = {
             select.appendChild(opt);
         });
 
+        // Populate Departments
+        const depts = await db.departments.toArray();
+        app.updateDepartmentFilters(depts);
+
         const modal = document.getElementById('add-ticket-modal');
         modal.classList.remove('hidden');
         setTimeout(() => {
@@ -1669,6 +1781,8 @@ window.app = {
             .map(line => line.startsWith('•') ? line : `• ${line}`)
             .join('\n');
 
+        const departmentId = parseInt(document.getElementById('add-ticket-department').value) || null;
+
         await db.tickets.add({
             callId: null,
             status: 'Open',
@@ -1678,6 +1792,7 @@ window.app = {
             createdAt: Date.now(),
             dateString: dateString,
             assigneeId: assigneeId,
+            departmentId: departmentId,
             userId: app.state.currentUser.id
         });
 
@@ -1733,6 +1848,11 @@ window.app = {
             select.appendChild(opt);
         });
 
+        // Populate Departments
+        const depts = await db.departments.toArray();
+        app.updateDepartmentFilters(depts);
+        document.getElementById('edit-ticket-department').value = ticket.departmentId || "";
+
         const modal = document.getElementById('edit-ticket-modal');
         modal.classList.remove('hidden');
         setTimeout(() => {
@@ -1773,6 +1893,7 @@ window.app = {
                 status,
                 dateString,
                 assigneeId,
+                departmentId: parseInt(document.getElementById('edit-ticket-department').value) || null,
                 timeDuration
             });
 

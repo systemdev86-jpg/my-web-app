@@ -2,12 +2,13 @@
 
 window.db = new Dexie("CallCenterDB");
 
-db.version(4).stores({
+db.version(5).stores({
   users: "++id, name, pin, role",
   calls: "++id, clientName, duration, timestamp, userId, dateString",
   activities: "++id, title, status, timestamp, userId",
-  tickets: "++id, description, status, priority, createdAt, userId, callId, dateString, assigneeId, clientName, timeDuration",
-  caseNotes: "++id, dateString, caseType, clientName, notes, userId, timestamp"
+  tickets: "++id, description, status, priority, createdAt, userId, callId, dateString, assigneeId, clientName, timeDuration, departmentId",
+  caseNotes: "++id, dateString, caseType, clientName, notes, userId, timestamp",
+  departments: "++id, name"
 });
 
 // --- Firebase Configuration ---
@@ -94,7 +95,7 @@ if (typeof firebase !== 'undefined') {
   };
 
   // Start Sync for tables
-  ['users', 'calls', 'activities', 'tickets', 'caseNotes'].forEach(syncTable);
+  ['users', 'calls', 'activities', 'tickets', 'caseNotes', 'departments'].forEach(syncTable);
 } else {
   console.error("Firebase not loaded! Ensure scripts in index.html are correct.");
 }

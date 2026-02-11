@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test Ticket Filter</title>
+</head>
+
+<body>
+    <h1>Testing Ticket Filtering</h1>
+    <div id="output"></div>
+
+    <script>
+        // Simulated tickets
+        const tickets = [
+            { id: 1, status: 'Open', assigneeId: 1, description: 'Open ticket for user 1' },
+            { id: 2, status: 'Closed', assigneeId: 1, description: 'Closed ticket for user 1' },
+            { id: 3, status: 'Open', assigneeId: 2, description: 'Open ticket for user 2' },
+            { id: 4, status: 'Closed', assigneeId: 2, description: 'Closed ticket for user 2' },
+            { id: 5, status: 'Closed', assigneeId: null, description: 'Closed unassigned ticket' }
+        ];
+
+        // Filter logic (same as app.js)
+        const openTickets = tickets.filter(t => t.status === 'Open');
+        const closedTickets = tickets.filter(t => t.status === 'Closed');
+
+        // Display results
+        const output = document.getElementById('output');
+        output.innerHTML = `
+            <h2>Open Tickets (${openTickets.length}):</h2>
+            <ul>${openTickets.map(t => `<li>#${t.id} - ${t.description}</li>`).join('')}</ul>
+            
+            <h2>Closed Tickets (${closedTickets.length}):</h2>
+            <ul>${closedTickets.map(t => `<li>#${t.id} - ${t.description}</li>`).join('')}</ul>
+        `;
+
+        console.log('Open tickets:', openTickets);
+        console.log('Closed tickets:', closedTickets);
+    </script>
+</body>
+
+</html>

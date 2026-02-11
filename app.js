@@ -1234,6 +1234,13 @@ window.app = {
         const openTickets = tickets.filter(t => t.status === 'Open');
         const closedTickets = tickets.filter(t => t.status === 'Closed');
 
+        console.log('📊 Ticket Summary:', {
+            total: tickets.length,
+            open: openTickets.length,
+            closed: closedTickets.length
+        });
+        console.log('✅ Closed tickets:', closedTickets.map(t => ({ id: t.id, status: t.status, assignee: t.assigneeId })));
+
         // Group OPEN tickets by User (Assignee)
         const grouped = { 'Unassigned': [] };
         // Pre-fill with all existing users

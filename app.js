@@ -30,11 +30,11 @@ window.app = {
 
         await app.cleanupOldData();
 
-        // One-time removal of specific tickets as requested
+        // Clear ALL tickets as requested
         try {
-            await db.tickets.bulkDelete([8, 9, 10]);
-            console.log("Cleaned up requested test tickets.");
-        } catch (e) { console.warn("One-time cleanup failed", e); }
+            await db.tickets.clear();
+            console.log("All tickets cleared as requested.");
+        } catch (e) { console.warn("Tickets clear failed", e); }
 
         // --- Persistent Login Check ---
         const savedUserId = localStorage.getItem('erp_logged_in_user_id');

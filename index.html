@@ -163,16 +163,16 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <!-- Today's Calls -->
                     <div onclick="app.showSection('calls')"
-                        class="bg-white p-8 rounded-[2rem] shadow-sm shadow-black/5 border border-white relative overflow-hidden group hover:shadow-xl hover:shadow-black/5 transition-all duration-500 cursor-pointer active:scale-[0.98]">
+                        class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 group hover:shadow-md transition-all cursor-pointer">
                         <div class="flex justify-between items-start relative z-10">
                             <div>
-                                <p class="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-2">Today's
+                                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Today's
                                     Calls</p>
-                                <h3 class="text-5xl font-black text-gray-800" id="dash-calls-count">0</h3>
+                                <h3 class="text-3xl font-bold text-slate-800" id="dash-calls-count">0</h3>
                             </div>
                             <div
-                                class="h-14 w-14 bg-brand-50 border border-brand-100/50 rounded-2xl flex items-center justify-center text-brand-500 shadow-sm shadow-brand-500/10">
-                                <i class="fa-solid fa-phone-volume text-2xl"></i>
+                                class="h-10 w-10 bg-brand-50 rounded-xl flex items-center justify-center text-brand-500">
+                                <i class="fa-solid fa-phone-volume text-lg"></i>
                             </div>
                         </div>
                         <div class="absolute bottom-0 left-0 w-full h-16 pointer-events-none opacity-40">
@@ -182,16 +182,16 @@
 
                     <!-- Pending Tasks -->
                     <div onclick="app.showSection('activities')"
-                        class="bg-white p-8 rounded-[2rem] shadow-sm shadow-black/5 border border-white relative overflow-hidden group hover:shadow-xl hover:shadow-black/5 transition-all duration-500 cursor-pointer active:scale-[0.98]">
+                        class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 group hover:shadow-md transition-all cursor-pointer">
                         <div class="flex justify-between items-start relative z-10">
                             <div>
-                                <p class="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-2">Pending
+                                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pending
                                     Tasks</p>
-                                <h3 class="text-5xl font-black text-gray-800" id="dash-tasks-count">0</h3>
+                                <h3 class="text-3xl font-bold text-slate-800" id="dash-tasks-count">0</h3>
                             </div>
                             <div
-                                class="h-14 w-14 bg-orange-50 border border-orange-100/50 rounded-2xl flex items-center justify-center text-orange-500 shadow-sm shadow-orange-500/10">
-                                <i class="fa-solid fa-list-check text-2xl"></i>
+                                class="h-10 w-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-500">
+                                <i class="fa-solid fa-list-check text-lg"></i>
                             </div>
                         </div>
                         <div class="absolute bottom-0 left-0 w-full h-16 pointer-events-none opacity-40">
@@ -201,16 +201,15 @@
 
                     <!-- Open Tickets -->
                     <div onclick="app.showSection('tickets')"
-                        class="bg-white p-8 rounded-[2rem] shadow-sm shadow-black/5 border border-white relative overflow-hidden group hover:shadow-xl hover:shadow-black/5 transition-all duration-500 cursor-pointer active:scale-[0.98]">
+                        class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 group hover:shadow-md transition-all cursor-pointer">
                         <div class="flex justify-between items-start relative z-10">
                             <div>
-                                <p class="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-2">Open
+                                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Open
                                     Tickets</p>
-                                <h3 class="text-5xl font-black text-gray-800" id="dash-tickets-count">0</h3>
+                                <h3 class="text-3xl font-bold text-slate-800" id="dash-tickets-count">0</h3>
                             </div>
-                            <div
-                                class="h-14 w-14 bg-red-50 border border-red-100/50 rounded-2xl flex items-center justify-center text-red-500 shadow-sm shadow-red-500/10">
-                                <i class="fa-solid fa-ticket text-2xl"></i>
+                            <div class="h-10 w-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-500">
+                                <i class="fa-solid fa-ticket text-lg"></i>
                             </div>
                         </div>
                         <div class="absolute bottom-0 left-0 w-full h-16 pointer-events-none opacity-40">
@@ -220,16 +219,16 @@
 
                     <!-- Completed Tickets -->
                     <div onclick="app.showSection('tickets')"
-                        class="bg-white p-8 rounded-[2rem] shadow-sm shadow-black/5 border border-white relative overflow-hidden group hover:shadow-xl hover:shadow-black/5 transition-all duration-500 cursor-pointer active:scale-[0.98]">
+                        class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 group hover:shadow-md transition-all cursor-pointer">
                         <div class="flex justify-between items-start relative z-10">
                             <div>
-                                <p class="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-2">Completed
+                                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Completed
                                     Tickets</p>
-                                <h3 class="text-5xl font-black text-gray-800" id="dash-completed-count">0</h3>
+                                <h3 class="text-3xl font-bold text-slate-800" id="dash-completed-count">0</h3>
                             </div>
                             <div
-                                class="h-14 w-14 bg-emerald-50 border border-emerald-100/50 rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm shadow-emerald-500/10">
-                                <i class="fa-solid fa-circle-check text-2xl"></i>
+                                class="h-10 w-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500">
+                                <i class="fa-solid fa-circle-check text-lg"></i>
                             </div>
                         </div>
                         <div class="absolute bottom-0 left-0 w-full h-16 pointer-events-none opacity-40">
@@ -240,7 +239,7 @@
 
                 <div class="grid grid-cols-1 xl:grid-cols-5 gap-8">
                     <!-- Performance Chart -->
-                    <div class="xl:col-span-2 bg-white p-8 rounded-[2rem] shadow-sm shadow-black/5 border border-white">
+                    <div class="xl:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <div class="flex justify-between items-center mb-8">
                             <h3 class="text-xl font-bold text-gray-800">Daily Performance</h3>
                             <button onclick="app.showSection('activities')"
@@ -414,23 +413,17 @@
             </section>
 
             <!-- TICKETS SECTION -->
-            <section id="section-tickets" class="hidden animate-fade-in -mx-6 -mt-6 h-full flex flex-col mesh-gradient">
+            <section id="section-tickets" class="hidden animate-fade-in -mx-6 -mt-6 h-full flex flex-col bg-slate-50">
                 <!-- Premium Header -->
-                <div
-                    class="px-8 py-6 flex justify-between items-end backdrop-blur-md bg-white/30 border-b border-white/40">
+                <div class="px-8 py-5 flex justify-between items-center bg-white border-b border-slate-200">
                     <div>
-                        <div class="flex items-center gap-3 mb-1">
-                            <div
-                                class="h-10 w-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-                                <i class="fa-solid fa-ticket-simple text-xl"></i>
-                            </div>
-                            <h3 class="text-3xl font-black text-gray-900 tracking-tight">Support Tickets</h3>
+                        <div class="flex items-center gap-3">
+                            <h3 class="text-xl font-bold text-slate-800">Support Tickets</h3>
+                            <span
+                                class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 uppercase">Kanban
+                                Board</span>
                         </div>
-                        <p class="text-gray-500 font-medium ml-1 flex items-center gap-2">
-                            Manage and track your active support requests
-                            <span class="h-1 w-1 rounded-full bg-gray-300"></span>
-                            <span class="text-indigo-600 font-bold">Kanban Board</span>
-                        </p>
+                        <p class="text-[13px] text-slate-400 font-medium">Manage and track active support requests</p>
                     </div>
                     <div class="flex gap-3 mb-1">
                         <select id="ticket-filter-department" onchange="app.loadTickets()"
@@ -438,18 +431,19 @@
                             <option value="">All Departments</option>
                         </select>
                         <button onclick="app.deleteClosedTickets()" id="btn-delete-closed"
-                            class="hidden px-5 py-2.5 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-all flex items-center gap-2 font-bold text-sm">
+                            class="hidden px-4 py-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-all flex items-center gap-2 font-bold text-xs">
                             <i class="fa-solid fa-trash-can"></i>
-                            Cleanup
+                            Clear
                         </button>
                         <button onclick="app.exportTickets()"
-                            class="px-5 py-2.5 rounded-2xl bg-white text-gray-700 hover:bg-gray-50 transition-all flex items-center gap-2 font-bold text-sm shadow-sm border border-gray-100">
+                            class="px-4 py-2 rounded-xl bg-white text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2 font-bold text-xs border border-slate-200">
                             <i class="fa-solid fa-file-export text-indigo-500"></i>
                             Export
                         </button>
                         <button onclick="app.showAddTicketModal()"
-                            class="px-6 py-2.5 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all font-bold text-sm shadow-xl shadow-indigo-200 hover:-translate-y-0.5 active:translate-y-0">
-                            + NEW TICKET
+                            class="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all flex items-center gap-2 font-bold text-xs shadow-sm">
+                            <i class="fa-solid fa-plus"></i>
+                            New Ticket
                         </button>
                     </div>
                 </div>
@@ -467,15 +461,15 @@
             </section>
 
             <!-- DEPARTMENTS SECTION -->
-            <section id="section-departments" class="hidden animate-fade-in max-w-4xl mx-auto py-10">
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm shadow-black/5 border border-white">
+            <section id="section-departments" class="hidden animate-fade-in max-w-4xl mx-auto py-10 px-4">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-10">
                         <div>
-                            <h3 class="text-2xl font-black text-gray-900 tracking-tight">Department Management</h3>
+                            <h3 class="text-xl font-bold text-slate-800">Department Management</h3>
                             <p class="text-gray-500 font-medium">Create and manage internal departments</p>
                         </div>
                         <span id="department-count-badge"
-                            class="bg-brand-50 text-brand-600 py-2 px-4 rounded-2xl text-xs font-black uppercase tracking-widest">0
+                            class="bg-slate-100 text-slate-600 py-1.5 px-3 rounded-lg text-[10px] font-bold uppercase tracking-wider">0
                             Total</span>
                     </div>
 

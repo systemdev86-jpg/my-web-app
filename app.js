@@ -1474,40 +1474,40 @@ window.app = {
             const columnName = isCompleted ? 'Completed' : (isUnassigned ? 'Unassigned' : (userMap[key] || 'Unknown'));
 
             const column = document.createElement('div');
-            column.className = `kanban-column attractive-column flex-shrink-0 w-[22rem] rounded-[2.5rem] p-6 flex flex-col min-h-[600px] transition-all duration-300 transform`;
+            column.className = `kanban-column flex-shrink-0 w-80 rounded-2xl flex flex-col min-h-[600px] transition-all duration-200`;
             column.dataset.assigneeId = key;
 
             // Drag & Drop events for column
             column.ondragover = (e) => {
                 e.preventDefault();
-                column.classList.add('bg-indigo-50/30', 'scale-[1.01]', 'shadow-2xl');
+                column.classList.add('bg-slate-200/50');
             };
             column.ondragleave = () => {
-                column.classList.remove('bg-indigo-50/30', 'scale-[1.01]', 'shadow-2xl');
+                column.classList.remove('bg-slate-200/50');
             };
             column.ondrop = (e) => {
                 e.preventDefault();
-                column.classList.remove('bg-indigo-50/30', 'scale-[1.01]', 'shadow-2xl');
+                column.classList.remove('bg-slate-200/50');
                 const ticketId = e.dataTransfer.getData('text/plain');
                 app.moveTicketToUser(parseInt(ticketId), key);
             };
 
             column.innerHTML = `
-                <div class="flex items-center justify-between mb-8 px-2">
-                    <div class="flex items-center gap-4">
-                        <div class="h-10 w-10 rounded-2xl bg-white shadow-xl flex items-center justify-center text-indigo-600 border border-white/50">
-                             ${isCompleted ? '<i class="fa-solid fa-check text-sm"></i>' : (isUnassigned ? '<i class="fa-solid fa-ghost text-sm"></i>' : '<i class="fa-solid fa-user-tag text-sm"></i>')}
+                <div class="flex items-center justify-between mb-5 px-1">
+                    <div class="flex items-center gap-3">
+                        <div class="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-500 border border-slate-200">
+                             ${isCompleted ? '<i class="fa-solid fa-check text-xs"></i>' : (isUnassigned ? '<i class="fa-solid fa-ghost text-xs"></i>' : '<i class="fa-solid fa-user text-xs"></i>')}
                         </div>
-                        <h4 class="font-black text-gray-900 text-base uppercase tracking-tight">
+                        <h4 class="font-bold text-slate-700 text-sm tracking-tight capitalize">
                             ${columnName}
                         </h4>
                     </div>
                     <div class="flex items-center gap-2">
-                         <span class="bg-indigo-600 text-white font-black text-[11px] px-3 py-1.5 rounded-xl shadow-lg shadow-indigo-100">
+                         <span class="text-slate-400 font-bold text-xs">
                             ${ticketsInColumn.length}
                         </span>
-                        <button onclick="app.showQuickAddTicket('${key}')" class="h-9 w-9 rounded-xl bg-white/50 hover:bg-white hover:shadow-lg transition-all text-gray-400 hover:text-indigo-600 flex items-center justify-center border border-white/40">
-                            <i class="fa-solid fa-plus text-sm"></i>
+                        <button onclick="app.showQuickAddTicket('${key}')" class="h-7 w-7 rounded-lg bg-slate-200/50 hover:bg-slate-300 transition-all text-slate-500 flex items-center justify-center">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
                         </button>
                     </div>
                 </div>
@@ -1525,59 +1525,37 @@ window.app = {
                 return `
                         <div draggable="${isDraggable}" ondragstart="event.dataTransfer.setData('text/plain', '${ticket.id}')"
                              onclick="app.editTicket(${ticket.id})"
-                             class="attractive-card p-6 group relative cursor-pointer active:scale-95 border-b-4 border-b-gray-50/50">
+                             class="attractive-card p-4 transition-all group relative cursor-pointer active:scale-95 bg-white border border-slate-200">
                             
-                            <div class="flex justify-between items-start mb-4">
-                                <div class="flex items-center gap-2.5">
-                                    <span class="pill-badge ${priorityClass} shadow-sm px-3 py-1">
-                                        <i class="fa-solid fa-bolt text-[8px]"></i> ${ticket.priority}
-                                    </span>
-                                    <span class="text-[10px] font-black text-gray-200 tracking-[0.2em] uppercase">
-                                        ID:${ticket.id}
-                                    </span>
-                                </div>
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="pill-badge ${priorityClass} text-[10px]">
+                                    ${ticket.priority}
+                                </span>
+                                <span class="text-[10px] font-medium text-slate-300">
+                                    #${ticket.id}
+                                </span>
                             </div>
 
-                            <h5 class="text-lg font-black text-gray-900 leading-tight mb-2 group-hover:text-indigo-600 transition-colors tracking-tight">
+                            <h5 class="text-sm font-bold text-slate-800 leading-tight mb-1 group-hover:text-indigo-600 transition-colors">
                                 ${ticket.clientName || 'Unnamed Client'}
                             </h5>
 
-                            <p class="text-[13px] text-gray-500 font-medium leading-relaxed line-clamp-2 mb-5">
-                                ${ticket.description || 'No detailed description provided.'}
+                            <p class="text-xs text-slate-500 line-clamp-2 mb-4">
+                                ${ticket.description || 'No description.'}
                             </p>
 
-                            <div class="flex items-center justify-between pt-5 border-t border-gray-100/60">
-                                <div class="flex items-center gap-3">
-                                    ${ticket.timeDuration ? `
-                                        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 text-gray-600 text-[11px] font-black shadow-sm border border-white">
-                                            <i class="fa-regular fa-clock text-indigo-500"></i> ${ticket.timeDuration}h
-                                        </div>
-                                    ` : ''}
-                                    <span class="text-[11px] font-black text-gray-300 uppercase letter-spacing-widest">
-                                        ${ticket.dateString ? ticket.dateString.split('-').slice(1).reverse().join('/') : ''}
-                                    </span>
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-50">
+                                <div class="flex items-center gap-2">
+                                    <img src="${avatarUrl}" class="h-5 w-5 rounded-full ring-2 ring-white shadow-sm" title="${assigneeName}">
+                                    <span class="text-[10px] font-medium text-slate-400">${assigneeName}</span>
                                 </div>
-                                
-                                <div class="flex items-center">
-                                     <div class="relative group/avatar">
-                                        <img src="${avatarUrl}" class="h-10 w-10 rounded-2xl border-2 border-white shadow-xl group-hover:rotate-6 transition-transform" alt="${assigneeName}">
-                                        <div class="absolute -bottom-1 -right-1 h-3.5 w-3.5 bg-indigo-500 border-2 border-white rounded-full"></div>
-                                        <div class="hidden group-hover/avatar:block absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-900 text-white text-[10px] font-bold rounded-xl whitespace-nowrap z-50 shadow-2xl animate-in fade-in slide-in-from-bottom-2">
-                                            ${assigneeName}
-                                        </div>
-                                    </div>
+                                <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                     <button class="h-6 w-6 rounded-md hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-all flex items-center justify-center">
+                                        <i class="fa-solid fa-pen text-[10px]"></i>
+                                    </button>
                                 </div>
                             </div>
-
-                            <!-- Floating Edit Action -->
-                            <div class="absolute -top-4 -right-4 opacity-0 group-hover:opacity-100 transition-all transform scale-50 group-hover:scale-100 rotate-12 group-hover:rotate-0">
-                                <button onclick="event.stopPropagation(); app.editTicket(${ticket.id})" 
-                                    class="h-12 w-12 flex items-center justify-center rounded-[1.25rem] bg-indigo-600 text-white shadow-2xl shadow-indigo-200 hover:bg-indigo-700 hover:scale-110 transition-all border-4 border-white">
-                                    <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
-                                </button>
-                            </div>
-                        </div>
-                        `;
+                        </div>`;
             }).join('')}
                 </div>
             `;

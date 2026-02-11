@@ -1549,9 +1549,14 @@ window.app = {
                                     <img src="${avatarUrl}" class="h-5 w-5 rounded-full ring-2 ring-white shadow-sm" title="${assigneeName}">
                                     <span class="text-[10px] font-medium text-slate-400">${assigneeName}</span>
                                 </div>
-                                <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                     <button class="h-6 w-6 rounded-md hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-all flex items-center justify-center">
+                                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                     <button onclick="event.stopPropagation(); app.editTicket(${ticket.id})" 
+                                        class="h-7 w-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-all flex items-center justify-center" title="Edit Ticket">
                                         <i class="fa-solid fa-pen text-[10px]"></i>
+                                    </button>
+                                     <button onclick="event.stopPropagation(); app.deleteTicket(${ticket.id})" 
+                                        class="h-7 w-7 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all flex items-center justify-center" title="Delete Ticket">
+                                        <i class="fa-solid fa-trash-can text-[10px]"></i>
                                     </button>
                                 </div>
                             </div>

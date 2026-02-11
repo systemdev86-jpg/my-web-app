@@ -2105,47 +2105,55 @@ window.app = {
     },
 
     showToast: (message, type = 'info') => {
-        const container = document.getElementById('toast-container');
-        // Check if container exists, if not create it dynamically (missing in index.html, adding fallback)
-        let safeContainer = container;
-        if (!safeContainer) {
-            safeContainer = document.createElement('div');
-            safeContainer.id = 'toast-container';
-            safeContainer.style.position = 'fixed';
-            safeContainer.style.bottom = '20px';
-            safeContainer.style.right = '20px';
-            safeContainer.style.zIndex = '100';
-            document.body.appendChild(safeContainer);
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            // Simple stacking container
+            container.className = 'fixed bottom-5 right-5 z-[100] flex flex-col gap-3 pointer-events-none';
+            document.body.appendChild(container);
         }
 
         const toast = document.createElement('div');
 
-        let bg = 'bg-gray-800';
+        let bg = 'bg-slate-800';
         let icon = 'fa-info-circle';
 
-        if (type === 'success') { bg = 'bg-emerald-600'; icon = 'fa-check-circle'; }
-        if (type === 'error') { bg = 'bg-red-600'; icon = 'fa-circle-exclamation'; }
+        if (type === 'success') { bg = 'bg-emerald-600'; icon = 'fa-circle-check'; }
+        if (type === 'error') { bg = 'bg-rose-600'; icon = 'fa-circle-xmark'; }
 
-        toast.className = `toast show ${bg} text-white shadow-lg flex items-center gap-3 pr-6 min-w-[300px] cursor-pointer`;
+        // Remove fixed positioning from individual toasts so they stack
+        toast.className = `transform translate-y-10 opacity-0 transition-all duration-300 ease-out ${bg} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 min-w-[320px] pointer-events-auto cursor-pointer`;
+
         toast.innerHTML = `
-            <i class="fa-solid ${icon}"></i>
-            <span class="font-medium text-sm">${message}</span>
+            <div class="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <i class="fa-solid ${icon} text-lg"></i>
+            </div>
+            <div class="flex-1">
+                <p class="font-bold text-sm leading-tight">${message}</p>
+            </div>
+            <button class="text-white/40 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         `;
 
-        toast.onclick = () => {
-            toast.classList.remove('show');
+        container.appendChild(toast);
+
+        // Force reflow and show
+        void toast.offsetWidth;
+        toast.classList.remove('translate-y-10', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+
+        const dismiss = () => {
+            toast.classList.add('translate-y-10', 'opacity-0');
+            toast.classList.remove('translate-y-0', 'opacity-100');
             setTimeout(() => toast.remove(), 300);
         };
 
-        safeContainer.appendChild(toast);
+        toast.onclick = dismiss;
 
-        // Auto-remove after 2 seconds
-        setTimeout(() => {
-            if (toast && toast.parentElement) {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }
-        }, 2000);
+        // Auto-dismiss after 2 seconds
+        setTimeout(dismiss, 2000);
     }
 };
 

@@ -394,6 +394,11 @@
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-lg font-bold text-gray-800">Support Tickets</h3>
                         <div class="flex gap-2">
+                            <button onclick="app.deleteClosedTickets()" id="btn-delete-closed"
+                                class="hidden bg-red-100 text-red-600 text-sm px-4 py-2 rounded-lg hover:bg-red-200 transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-trash-can"></i>
+                                Delete Closed
+                            </button>
                             <button onclick="app.exportTickets()"
                                 class="bg-emerald-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2">
                                 <i class="fa-solid fa-file-excel"></i>

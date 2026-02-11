@@ -171,11 +171,15 @@ window.app = {
         document.getElementById('sidebar-role').innerText = user.role.toUpperCase();
         document.getElementById('sidebar-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`;
 
-        // Show Admin specific nav
+        // Admin specific buttons
         if (user.role === 'admin') {
             document.getElementById('nav-users').classList.remove('hidden');
+            const delBtn = document.getElementById('btn-delete-closed');
+            if (delBtn) delBtn.classList.remove('hidden');
         } else {
             document.getElementById('nav-users').classList.add('hidden');
+            const delBtn = document.getElementById('btn-delete-closed');
+            if (delBtn) delBtn.classList.add('hidden');
         }
 
         // Hide Login Modal
@@ -1253,6 +1257,25 @@ window.app = {
     deleteTask: async (id) => {
         await db.activities.delete(id);
         app.loadActivities();
+    },
+
+    deleteClosedTickets: async () => {
+        if (app.state.currentUser.role !== 'admin') {
+            app.showToast('Only admins can bulk delete tickets.', 'error');
+            return;
+        }
+
+        const closed = await db.tickets.where('status').equals('Closed').toArray();
+        if (closed.length === 0) {
+            app.showToast('No closed tickets to delete.', 'info');
+            return;
+        }
+
+        if (confirm(`Are you sure you want to PERMANENTLY delete ${closed.length} closed tickets?`)) {
+            await db.tickets.bulkDelete(closed.map(t => t.id));
+            app.showToast(`Deleted ${closed.length} tickets.`, 'success');
+            app.loadTickets();
+        }
     },
 
     // --- Tickets Logic (Kanban Board) ---

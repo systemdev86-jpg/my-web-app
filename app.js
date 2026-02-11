@@ -1419,8 +1419,8 @@ window.app = {
                                 <p class="line-clamp-3">${ticket.description || 'No description'}</p>
                             </div>
 
-                            <!-- Action Buttons -->
-                            <div class="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-all bg-white/95 backdrop-blur-sm rounded-lg border border-gray-100 shadow-sm z-10 p-0.5">
+                            <!-- Action Buttons (Always Visible) -->
+                            <div class="absolute top-1.5 right-1.5 flex gap-1 bg-white/95 backdrop-blur-sm rounded-lg border border-gray-100 shadow-sm z-10 p-0.5">
                                 <button onclick="app.editTicket(${ticket.id})" class="h-6 w-6 rounded-md hover:bg-brand-50 hover:text-brand-600 flex items-center justify-center transition-colors">
                                     <i class="fa-solid fa-pen text-[10px]"></i>
                                 </button>

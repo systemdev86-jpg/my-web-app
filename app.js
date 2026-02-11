@@ -346,6 +346,7 @@ window.app = {
             let callsCount = 0;
             let pendingTasks = 0;
             let openTickets = 0;
+            let closedTickets = 0;
             let recentCalls = [];
 
             // Stats counts - Role-based visibility
@@ -353,16 +354,19 @@ window.app = {
                 callsCount = await db.calls.where('timestamp').aboveOrEqual(today.getTime()).count();
                 pendingTasks = await db.activities.where('status').equals('pending').count();
                 openTickets = await db.tickets.where('status').equals('Open').count();
+                closedTickets = await db.tickets.where('status').equals('Closed').count();
             } else {
                 callsCount = await db.calls.where('timestamp').aboveOrEqual(today.getTime()).and(c => c.userId === app.state.currentUser.id).count();
                 pendingTasks = await db.activities.where('userId').equals(app.state.currentUser.id).and(a => a.status === 'pending').count();
                 // Show open tickets assigned to them OR unassigned
                 openTickets = await db.tickets.where('status').equals('Open').and(t => t.assigneeId === app.state.currentUser.id || t.assigneeId === null || t.assigneeId === 'Unassigned').count();
+                closedTickets = await db.tickets.where('status').equals('Closed').and(t => t.assigneeId === app.state.currentUser.id).count();
             }
 
             document.getElementById('dash-calls-count').innerText = callsCount;
             document.getElementById('dash-tasks-count').innerText = pendingTasks;
             document.getElementById('dash-tickets-count').innerText = openTickets;
+            document.getElementById('dash-completed-count').innerText = closedTickets;
 
             // --- Sparklines and Main Chart Logic ---
             app.renderCharts();

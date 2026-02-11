@@ -1256,8 +1256,8 @@ window.app = {
             }
         });
 
-        // Column keys: 'Unassigned' first, then users, then 'Completed'
-        const columnKeys = ['Unassigned', ...users.map(u => u.id), 'Completed'];
+        // Column keys: 'Unassigned' first, 'Completed' second, then users
+        const columnKeys = ['Unassigned', 'Completed', ...users.map(u => u.id)];
 
         columnKeys.forEach(key => {
             const isCompleted = key === 'Completed';

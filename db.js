@@ -39,6 +39,11 @@ if (typeof firebase !== 'undefined') {
         const docId = isNaN(change.doc.id) ? change.doc.id : parseInt(change.doc.id);
 
         if (change.type === "added" || change.type === "modified") {
+          // Normalize common ID fields
+          if (data.userId && !isNaN(data.userId)) data.userId = parseInt(data.userId);
+          if (data.assigneeId && !isNaN(data.assigneeId)) data.assigneeId = parseInt(data.assigneeId);
+          if (data.callId && !isNaN(data.callId)) data.callId = parseInt(data.callId);
+
           await db[tableName].put({ ...data, id: docId });
 
           // Trigger UI updates if app is initialized

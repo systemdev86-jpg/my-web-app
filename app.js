@@ -1280,9 +1280,11 @@ window.app = {
 
     moveTicketToUser: async (ticketId, assigneeId) => {
         try {
-            const finalAssignee = assigneeId === 'Unassigned' ? null : parseInt(assigneeId);
+            // Ensure ID is handled correctly (Dexie uses numbers, Firestore uses strings)
+            const finalAssignee = (assigneeId === 'Unassigned' || !assigneeId) ? null :
+                (isNaN(assigneeId) ? assigneeId : parseInt(assigneeId));
+
             await db.tickets.update(ticketId, { assigneeId: finalAssignee });
-            app.loadTickets();
 
             let userName = 'Unassigned';
             if (finalAssignee) {
@@ -1291,6 +1293,8 @@ window.app = {
             }
 
             app.showToast(`Ticket #${ticketId} assigned to ${userName}`, 'success');
+            // Force a local refresh to show the change immediately
+            await app.loadTickets();
         } catch (e) {
             console.error("Error moving ticket", e);
             app.showToast("Failed to move ticket.", "error");
@@ -1376,10 +1380,11 @@ window.app = {
             priority: 'Medium',
             createdAt: Date.now(),
             dateString: dateString,
-            userId: app.state.currentUser.id
+            userId: app.state.currentUser.id,
+            assigneeId: app.state.currentUser.id // Auto-assign to creator
         });
 
-        app.showToast('Ticket created from call.', 'success');
+        app.showToast('Ticket created and assigned to you.', 'success');
         app.showSection('tickets');
     },
 

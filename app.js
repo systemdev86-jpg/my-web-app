@@ -1189,26 +1189,32 @@ window.app = {
         const userMap = {};
         users.forEach(u => userMap[u.id] = u.name);
 
-        // Group tickets by Client Name
+        // Group tickets by User (Assignee)
         const grouped = { 'Unassigned': [] };
+        // Pre-fill with all existing users
+        users.forEach(u => {
+            grouped[u.id] = [];
+        });
+
         tickets.forEach(t => {
-            const client = t.clientName || 'Unassigned';
-            if (!grouped[client]) grouped[client] = [];
-            grouped[client].push(t);
+            if (t.assigneeId && grouped[t.assigneeId]) {
+                grouped[t.assigneeId].push(t);
+            } else {
+                grouped['Unassigned'].push(t);
+            }
         });
 
-        // Ensure Unassigned is first, then alphabetical
-        const clientNames = Object.keys(grouped).sort((a, b) => {
-            if (a === 'Unassigned') return -1;
-            if (b === 'Unassigned') return 1;
-            return a.localeCompare(b);
-        });
+        // Column keys: 'Unassigned' first, then users
+        const columnKeys = ['Unassigned', ...users.map(u => u.id)];
 
-        clientNames.forEach(client => {
-            const ticketsInColumn = grouped[client];
+        columnKeys.forEach(key => {
+            const ticketsInColumn = grouped[key];
+            const isUnassigned = key === 'Unassigned';
+            const columnName = isUnassigned ? 'Unassigned' : (userMap[key] || 'Unknown');
+
             const column = document.createElement('div');
-            column.className = 'kanban-column flex-shrink-0 w-80 bg-gray-50/50 rounded-[2rem] p-4 flex flex-col min-h-[400px] border border-gray-100/50';
-            column.dataset.client = client;
+            column.className = 'kanban-column flex-shrink-0 w-80 bg-gray-50/50 rounded-[2.5rem] p-4 flex flex-col min-h-[400px] border border-gray-100/50';
+            column.dataset.assigneeId = key;
 
             // Drag & Drop events for column
             column.ondragover = (e) => {
@@ -1222,13 +1228,14 @@ window.app = {
                 e.preventDefault();
                 column.classList.remove('bg-brand-50/50');
                 const ticketId = e.dataTransfer.getData('text/plain');
-                app.moveTicketToClient(parseInt(ticketId), client);
+                app.moveTicketToUser(parseInt(ticketId), key);
             };
 
             column.innerHTML = `
                 <div class="flex items-center justify-between mb-4 px-2">
-                    <h4 class="font-bold text-gray-700 text-sm flex items-center gap-2">
-                        ${client}
+                    <h4 class="font-bold text-gray-700 text-sm flex items-center gap-2 uppercase tracking-wide">
+                        ${isUnassigned ? '<i class="fa-solid fa-circle-question text-gray-400"></i>' : '<i class="fa-solid fa-user-check text-brand-500"></i>'}
+                        ${columnName}
                         <span class="bg-gray-200 text-gray-500 text-[10px] px-1.5 py-0.5 rounded-full">${ticketsInColumn.length}</span>
                     </h4>
                 </div>
@@ -1237,21 +1244,20 @@ window.app = {
                 const urgencyBadge = ticket.priority === 'High' ? 'text-red-600 bg-red-100' : (ticket.priority === 'Medium' ? 'text-orange-600 bg-orange-100' : 'text-blue-600 bg-blue-100');
                 const cardBg = ticket.priority === 'High' ? 'bg-red-50/60 border-red-100' : (ticket.priority === 'Medium' ? 'bg-amber-50/60 border-amber-100' : 'bg-blue-50/60 border-blue-100');
                 const accentColor = ticket.priority === 'High' ? 'bg-red-500' : (ticket.priority === 'Medium' ? 'bg-amber-500' : 'bg-blue-500');
-                const assigneeName = userMap[ticket.assigneeId] || 'Unassigned';
+
                 return `
                         <div draggable="true" ondragstart="event.dataTransfer.setData('text/plain', '${ticket.id}')"
                              class="${cardBg} p-5 rounded-2xl shadow-sm border hover:shadow-md transition-all cursor-grab active:cursor-grabbing group relative overflow-hidden">
                             <div class="absolute top-0 left-0 w-1 h-full ${accentColor}"></div>
                             <div class="flex justify-between items-start mb-3">
-                                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Card #${ticket.id}</span>
-                                <span class="text-[10px] text-gray-400">ID #${ticket.id}</span>
+                                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Client: ${ticket.clientName || 'N/A'}</span>
+                                <span class="text-[10px] text-gray-400">#${ticket.id}</span>
                             </div>
                             <div class="flex items-center gap-2 mb-3">
-                                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(assigneeName)}&background=fff&color=1e293b" class="h-6 w-6 rounded-lg pointer-events-none shadow-sm" />
-                                <span class="text-xs font-bold text-gray-700">${assigneeName}</span>
-                                <span class="ml-auto px-2 py-0.5 rounded text-[10px] font-bold ${urgencyBadge}">${ticket.priority}</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${urgencyBadge}">${ticket.priority} Priority</span>
+                                <span class="ml-auto text-[10px] text-gray-400">${ticket.dateString || ''}</span>
                             </div>
-                            <p class="text-[13px] text-gray-600 line-clamp-2 mb-4 leading-relaxed font-medium">
+                            <p class="text-[13px] text-gray-600 line-clamp-3 mb-4 leading-relaxed font-medium">
                                 ${(ticket.description || '').replace(/^•\s*/, '')}
                             </p>
                             <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
@@ -1272,12 +1278,19 @@ window.app = {
         });
     },
 
-    moveTicketToClient: async (ticketId, clientName) => {
+    moveTicketToUser: async (ticketId, assigneeId) => {
         try {
-            const finalClient = clientName === 'Unassigned' ? '' : clientName;
-            await db.tickets.update(ticketId, { clientName: finalClient });
+            const finalAssignee = assigneeId === 'Unassigned' ? null : parseInt(assigneeId);
+            await db.tickets.update(ticketId, { assigneeId: finalAssignee });
             app.loadTickets();
-            app.showToast(`Ticket #${ticketId} moved to ${clientName}`, 'success');
+
+            let userName = 'Unassigned';
+            if (finalAssignee) {
+                const user = await db.users.get(finalAssignee);
+                if (user) userName = user.name;
+            }
+
+            app.showToast(`Ticket #${ticketId} assigned to ${userName}`, 'success');
         } catch (e) {
             console.error("Error moving ticket", e);
             app.showToast("Failed to move ticket.", "error");

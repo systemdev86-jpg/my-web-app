@@ -1287,49 +1287,54 @@ window.app = {
             }
 
             column.innerHTML = `
-                <div class="flex items-center justify-between mb-4 px-2">
-                    <h4 class="font-bold ${isCompleted ? 'text-emerald-700' : 'text-gray-700'} text-sm flex items-center gap-2 uppercase tracking-wide">
+                <div class="flex items-center justify-between mb-3 px-2">
+                    <h4 class="font-bold ${isCompleted ? 'text-emerald-700' : 'text-gray-700'} text-xs flex items-center gap-2 uppercase tracking-wide">
                         ${isCompleted ? '<i class="fa-solid fa-check-circle text-emerald-500"></i>' : (isUnassigned ? '<i class="fa-solid fa-circle-question text-gray-400"></i>' : '<i class="fa-solid fa-user-check text-brand-500"></i>')}
                         ${columnName}
                         <span class="${isCompleted ? 'bg-emerald-200 text-emerald-700' : 'bg-gray-200 text-gray-500'} text-[10px] px-1.5 py-0.5 rounded-full">${ticketsInColumn.length}</span>
                     </h4>
                 </div>
-                <div class="flex-1 space-y-4">
+                <div class="flex-1 space-y-2">
                     ${ticketsInColumn.map(ticket => {
                 const urgencyBadge = ticket.priority === 'High' ? 'text-red-600 bg-red-100' : (ticket.priority === 'Medium' ? 'text-orange-600 bg-orange-100' : 'text-blue-600 bg-blue-100');
-                const cardBg = ticket.priority === 'High' ? 'bg-red-50/60 border-red-100' : (ticket.priority === 'Medium' ? 'bg-amber-50/60 border-amber-100' : 'bg-blue-50/60 border-blue-100');
+                const cardBg = ticket.priority === 'High' ? 'bg-red-50/50 border-red-100' : (ticket.priority === 'Medium' ? 'bg-amber-50/50 border-amber-100' : 'bg-blue-50/50 border-blue-100');
                 const accentColor = ticket.priority === 'High' ? 'bg-red-500' : (ticket.priority === 'Medium' ? 'bg-amber-500' : 'bg-blue-500');
                 const statusBadge = ticket.status === 'Open' ? 'text-emerald-600 bg-emerald-100' : 'text-gray-600 bg-gray-200';
                 const isDraggable = ticket.status === 'Open';
 
                 return `
                         <div draggable="${isDraggable}" ondragstart="event.dataTransfer.setData('text/plain', '${ticket.id}')"
-                             class="${cardBg} p-5 rounded-2xl shadow-sm border hover:shadow-md transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'} group relative overflow-hidden">
+                             class="${cardBg} p-3 rounded-xl shadow-sm border hover:shadow-md transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'} group relative overflow-hidden">
                             <div class="absolute top-0 left-0 w-1 h-full ${accentColor}"></div>
-                            <div class="flex justify-between items-start mb-3">
-                                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Client: ${ticket.clientName || 'N/A'}</span>
-                                <span class="text-[10px] text-gray-400">#${ticket.id}</span>
+                            
+                            <div class="flex justify-between items-start mb-1.5">
+                                <span class="text-[11px] font-bold text-gray-700 uppercase tracking-wider truncate pr-2 w-3/4" title="${ticket.clientName}">${ticket.clientName || 'N/A'}</span>
+                                <span class="text-[9px] text-gray-400 shrink-0">#${ticket.id}</span>
                             </div>
-                            <div class="flex items-center gap-2 mb-3 flex-wrap">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${urgencyBadge}">${ticket.priority} Priority</span>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusBadge}">${ticket.status}</span>
-                                <span class="ml-auto text-[10px] text-gray-400">${ticket.dateString || ''}</span>
+
+                            <div class="flex items-center gap-1.5 mb-2 flex-wrap text-[9px]">
+                                <span class="px-1.5 py-0.5 rounded font-bold ${urgencyBadge}">${ticket.priority}</span>
+                                <span class="px-1.5 py-0.5 rounded font-bold ${statusBadge}">${ticket.status}</span>
+                                <span class="ml-auto text-gray-400 font-medium">${ticket.dateString || ''}</span>
                             </div>
-                            <p class="text-[13px] text-gray-600 line-clamp-3 mb-4 leading-relaxed font-medium">
+
+                            <p class="text-[11px] text-gray-600 line-clamp-2 leading-relaxed font-medium mb-1">
                                 ${(ticket.description || '').replace(/^•\\s*/, '')}
                             </p>
+
                             ${ticket.timeDuration ? `
-                            <div class="flex items-center gap-1 mb-3 text-xs text-gray-500">
-                                <i class="fa-solid fa-clock"></i>
-                                <span class="font-semibold">${ticket.timeDuration} hrs</span>
+                            <div class="flex items-center gap-1 mt-1.5 text-[10px] text-gray-500">
+                                <i class="fa-solid fa-clock opacity-75"></i>
+                                <span class="font-semibold">${ticket.timeDuration}h</span>
                             </div>` : ''}
-                            <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                <button onclick="app.editTicket(${ticket.id})" class="h-7 w-7 rounded-lg bg-gray-50 text-gray-400 hover:bg-brand-50 hover:text-brand-600 transition-all flex items-center justify-center">
-                                    <i class="fa-solid fa-pen text-[10px]"></i>
+
+                            <div class="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all bg-white/80 backdrop-blur-sm p-0.5 rounded-lg border border-gray-100 shadow-sm z-10">
+                                <button onclick="app.editTicket(${ticket.id})" class="h-6 w-6 rounded bg-gray-50 text-gray-500 hover:bg-brand-50 hover:text-brand-600 transition-all flex items-center justify-center">
+                                    <i class="fa-solid fa-pen text-[9px]"></i>
                                 </button>
                                 ${app.state.currentUser.role === 'admin' ? `
-                                <button onclick="app.deleteTicket(${ticket.id})" class="h-7 w-7 rounded-lg bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
-                                    <i class="fa-solid fa-trash text-[10px]"></i>
+                                <button onclick="app.deleteTicket(${ticket.id})" class="h-6 w-6 rounded bg-gray-50 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+                                    <i class="fa-solid fa-trash text-[9px]"></i>
                                 </button>` : ''}
                             </div>
                         </div>

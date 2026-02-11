@@ -2,9 +2,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --brand-primary: #0ea5e9;
-    --brand-dark: #0369a1;
-    --brand-light: #e0f2fe;
+    --brand-primary: #714B67;
+    /* Odoo Purple */
+    --brand-dark: #4E3447;
+    --brand-light: #F0F0F0;
+    --odoo-bg: #E7E9ED;
+    --odoo-column: #F8F9FA;
+    --odoo-card: #FFFFFF;
     --glass-bg: rgba(255, 255, 255, 0.8);
     --glass-border: rgba(255, 255, 255, 0.6);
 }
@@ -193,27 +197,51 @@ input[type=range]::-webkit-slider-runnable-track {
     border-radius: 10px;
 }
 
-/* Kanban Board Styles */
-#tickets-kanban-board {
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 transparent;
-}
-
-#tickets-kanban-board::-webkit-scrollbar {
-    height: 6px;
-}
-
-#tickets-kanban-board::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
-}
-
 .kanban-column {
-    transition: background-color 0.2s ease;
+    background-color: var(--odoo-column) !important;
+    border-radius: 4px !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
-.kanban-column:hover {
-    background-color: rgba(249, 250, 251, 0.8) !important;
+.kanban-card {
+    background-color: var(--odoo-card);
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    padding: 10px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+
+.kanban-card:hover {
+    border-color: var(--brand-primary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.priority-star {
+    color: #ffd700;
+    cursor: pointer;
+}
+
+.priority-star.empty {
+    color: #e9ecef;
+}
+
+.active-user-badge {
+    position: relative;
+    display: inline-block;
+}
+
+.active-user-badge::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    background: #28a745;
+    border: 2px solid #fff;
+    border-radius: 50%;
 }
 
 [draggable="true"] {

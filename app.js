@@ -1359,83 +1359,102 @@ window.app = {
             const isCompleted = key === 'Completed';
             const ticketsInColumn = isCompleted ? closedTickets : (grouped[key] || []);
             const isUnassigned = key === 'Unassigned';
-            const columnName = isCompleted ? 'Completed Tickets' : (isUnassigned ? 'Unassigned' : (userMap[key] || 'Unknown'));
+            const columnName = isCompleted ? 'Completed' : (isUnassigned ? 'Unassigned' : (userMap[key] || 'Unknown'));
 
             const column = document.createElement('div');
-            column.className = `kanban-column flex-shrink-0 w-80 ${isCompleted ? 'bg-gradient-to-br from-emerald-50/80 to-teal-50/80 border-emerald-200' : 'bg-gray-50/50 border-gray-100/50'} rounded-[2.5rem] p-4 flex flex-col min-h-[400px] border`;
+            column.className = `kanban-column flex-shrink-0 w-80 bg-[#F8F9FA] rounded p-3 flex flex-col min-h-[500px] border-r border-[#DEE2E6]`;
             column.dataset.assigneeId = key;
 
             // Drag & Drop events for column
             column.ondragover = (e) => {
                 e.preventDefault();
-                column.classList.add('bg-brand-50/50');
+                column.classList.add('bg-[#F2F4F7]');
             };
             column.ondragleave = () => {
-                column.classList.remove('bg-brand-50/50');
+                column.classList.remove('bg-[#F2F4F7]');
             };
             column.ondrop = (e) => {
                 e.preventDefault();
-                column.classList.remove('bg-brand-50/50');
+                column.classList.remove('bg-[#F2F4F7]');
                 const ticketId = e.dataTransfer.getData('text/plain');
                 app.moveTicketToUser(parseInt(ticketId), key);
             };
 
             column.innerHTML = `
-                <div class="flex items-center justify-between mb-2 px-2">
-                    <h4 class="font-bold ${isCompleted ? 'text-emerald-700' : 'text-gray-700'} text-xs flex items-center gap-2 uppercase tracking-wide">
-                        ${isCompleted ? '<i class="fa-solid fa-check-circle text-emerald-500"></i>' : (isUnassigned ? '<i class="fa-solid fa-circle-question text-gray-400"></i>' : '<i class="fa-solid fa-user-check text-brand-500"></i>')}
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-[#DEE2E6] px-1 text-gray-700">
+                    <h4 class="font-bold text-sm flex items-center gap-2">
                         ${columnName}
-                        <span class="${isCompleted ? 'bg-emerald-200 text-emerald-700' : 'bg-gray-200 text-gray-500'} text-[9px] px-1.5 py-0.5 rounded-full">${ticketsInColumn.length}</span>
+                        <span class="text-[#ADB5BD] font-normal text-xs">(${ticketsInColumn.length})</span>
                     </h4>
+                    <div class="flex gap-2">
+                        <button onclick="app.showQuickAddTicket('${key}')" class="text-[#ADB5BD] hover:text-[#714B67] transition-colors" title="Quick Add">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                        </button>
+                        <button class="text-[#ADB5BD] hover:text-[#714B67] transition-colors">
+                            <i class="fa-solid fa-gear text-xs"></i>
+                        </button>
+                    </div>
                 </div>
-                <!--Reduced spacing between cards-- >
-                <div class="flex-1 space-y-1.5">
+                
+                <div class="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-1">
                     ${ticketsInColumn.map(ticket => {
-                const urgencyBadge = ticket.priority === 'High' ? 'text-red-600 bg-red-100' : (ticket.priority === 'Medium' ? 'text-orange-600 bg-orange-100' : 'text-blue-600 bg-blue-100');
-                const cardBg = ticket.priority === 'High' ? 'bg-white border-l-2 border-l-red-500 border-gray-100' : (ticket.priority === 'Medium' ? 'bg-white border-l-2 border-l-amber-500 border-gray-100' : 'bg-white border-l-2 border-l-blue-500 border-gray-100');
-                const statusBadge = ticket.status === 'Open' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-600 bg-gray-100';
+                const priorityStars = ticket.priority === 'High' ? 3 : (ticket.priority === 'Medium' ? 2 : 1);
+                const statusColor = ticket.status === 'Open' ? '#28a745' : '#6c757d';
                 const isDraggable = ticket.status === 'Open';
+
+                // Get assignee name for avatar tooltip
+                const assigneeName = userMap[ticket.assigneeId] || 'Unassigned';
+                const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(assigneeName)}&background=714B67&color=fff&size=24`;
 
                 return `
                         <div draggable="${isDraggable}" ondragstart="event.dataTransfer.setData('text/plain', '${ticket.id}')"
                              onclick="app.editTicket(${ticket.id})"
-                             class="${cardBg} p-3 rounded-xl shadow-sm border hover:shadow-md transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} group relative">
+                             class="kanban-card group relative cursor-pointer">
                             
-                            <!-- Header: Client & ID -->
-                            <div class="flex justify-between items-center mb-1.5">
-                                <span class="text-[13px] font-bold text-gray-800 truncate pr-2 w-3/4" title="${ticket.clientName}">${ticket.clientName || 'N/A'}</span>
-                                <span class="text-[11px] text-gray-400 shrink-0 font-mono">#${ticket.id}</span>
+                            <div class="flex justify-between items-start mb-1">
+                                <h5 class="text-[13px] font-semibold text-[#343a40] line-clamp-2 pr-6" title="${ticket.clientName}">
+                                    ${ticket.clientName || 'N/A'}
+                                </h5>
+                                <span class="text-[10px] text-[#ADB5BD] font-mono shrink-0">#${ticket.id}</span>
                             </div>
 
-                            <!-- Badges Row -->
-                            <div class="flex items-center gap-2 flex-wrap mb-2">
-                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-gray-100 ${urgencyBadge}">${ticket.priority}</span>
-                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-gray-100 ${statusBadge}">${ticket.status}</span>
-                                ${ticket.timeDuration ? `<span class="text-[11px] text-gray-400 flex items-center gap-0.5"><i class="fa-solid fa-clock text-[10px]"></i> ${ticket.timeDuration}h</span>` : ''}
-                                <span class="ml-auto text-[11px] text-gray-400">${ticket.dateString ? ticket.dateString.slice(5) : ''}</span>
+                            <div class="text-[11px] text-[#6c757d] line-clamp-2 mb-3 leading-snug">
+                                ${ticket.description || 'No description provided.'}
                             </div>
 
-                            <!-- Description (Always Visible) -->
-                            <div class="mt-2 text-[12px] text-gray-600 leading-relaxed border-t border-gray-50 pt-2">
-                                <p class="line-clamp-3">${ticket.description || 'No description'}</p>
-                            </div>
-
-                            <!-- Action Row (Always Visible) -->
-                            <div class="mt-3 pt-2 border-t border-gray-100 flex justify-between items-center">
-                                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
-                                    <i class="fa-solid fa-hashtag text-[8px]"></i> ${ticket.id}
-                                </span>
-                                <div class="flex gap-2">
-                                    <button onclick="event.stopPropagation(); app.editTicket(${ticket.id})" 
-                                        class="px-3 py-1.5 rounded-lg bg-brand-500 text-white hover:bg-brand-600 flex items-center gap-1.5 transition-all text-[11px] font-bold shadow-sm shadow-brand-200">
-                                        <i class="fa-solid fa-pen-to-square text-[10px]"></i> EDIT
-                                    </button>
-                                    ${app.state.currentUser.role === 'admin' ? `
-                                    <button onclick="event.stopPropagation(); app.deleteTicket(${ticket.id})" 
-                                        class="px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-600 flex items-center gap-1.5 transition-all text-[10px] font-bold">
-                                        <i class="fa-solid fa-trash text-[10px]"></i>
-                                    </button>` : ''}
+                            <div class="flex items-center justify-between mt-auto">
+                                <div class="flex items-center gap-1">
+                                    <div class="flex gap-0.5 mr-2">
+                                        ${[1, 2, 3].map(i => `
+                                            <i class="fa-solid fa-star text-[9px] ${i <= priorityStars ? 'text-[#FFAC00]' : 'text-[#DEE2E6]'}"></i>
+                                        `).join('')}
+                                    </div>
+                                    <span class="text-[9px] px-1.5 py-0.5 rounded-full border border-[#DEE2E6] text-[#495057] bg-white font-medium uppercase tracking-tighter">
+                                        ${ticket.status}
+                                    </span>
                                 </div>
+                                
+                                <div class="flex items-center gap-2">
+                                    ${ticket.timeDuration ? `
+                                        <span class="text-[10px] text-[#ADB5BD] flex items-center gap-1">
+                                            <i class="fa-regular fa-clock"></i> ${ticket.timeDuration}h
+                                        </span>
+                                    ` : ''}
+                                    <div class="relative group/avatar">
+                                        <img src="${avatarUrl}" class="h-6 w-6 rounded-full border border-white shadow-sm" alt="Assignee">
+                                        <div class="hidden group-hover/avatar:block absolute bottom-full right-0 mb-1 px-2 py-1 bg-[#343a40] text-white text-[10px] rounded whitespace-nowrap z-50">
+                                            ${assigneeName}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Odoo Style Edit Overlay -->
+                            <div class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="event.stopPropagation(); app.editTicket(${ticket.id})" 
+                                    class="h-6 w-6 flex items-center justify-center rounded bg-white border border-[#DEE2E6] text-[#6c757d] hover:text-[#714B67] shadow-sm">
+                                    <i class="fa-solid fa-pencil text-[10px]"></i>
+                                </button>
                             </div>
                         </div>
                         `;
@@ -1578,7 +1597,7 @@ window.app = {
         app.showSection('tickets');
     },
 
-    showAddTicketModal: async () => {
+    showAddTicketModal: async (initialAssigneeId = null) => {
         if (!app.state.currentUser) return;
 
         // Reset and show modal
@@ -1594,7 +1613,13 @@ window.app = {
             const opt = document.createElement('option');
             opt.value = u.id;
             opt.innerText = u.name;
-            if (u.id === app.state.currentUser.id) opt.selected = true;
+
+            // Logic for initial selection
+            if (initialAssigneeId) {
+                if (u.id.toString() === initialAssigneeId.toString()) opt.selected = true;
+            } else if (u.id === app.state.currentUser.id) {
+                opt.selected = true;
+            }
             select.appendChild(opt);
         });
 
@@ -1605,6 +1630,12 @@ window.app = {
             document.getElementById('add-ticket-modal-content').classList.remove('scale-95');
             document.getElementById('add-ticket-modal-content').classList.add('scale-100');
         }, 10);
+    },
+
+    showQuickAddTicket: (assigneeId) => {
+        // 'Unassigned' or 'Completed' should be null/empty for assignee selection
+        const idToPass = (assigneeId === 'Unassigned' || assigneeId === 'Completed') ? '' : assigneeId;
+        app.showAddTicketModal(idToPass);
     },
 
     createTicket: async () => {

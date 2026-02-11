@@ -1257,7 +1257,15 @@ window.app = {
         });
 
         // Column keys: 'Unassigned' first, 'Completed' second, then users
-        const columnKeys = ['Unassigned', 'Completed', ...users.map(u => u.id)];
+        let columnKeys = [];
+
+        if (app.state.currentUser.role === 'admin') {
+            // Admin sees everyone
+            columnKeys = ['Unassigned', 'Completed', ...users.map(u => u.id)];
+        } else {
+            // Standard users see Unassigned, Completed, and THEMSELVES only
+            columnKeys = ['Unassigned', 'Completed', app.state.currentUser.id];
+        }
 
         columnKeys.forEach(key => {
             const isCompleted = key === 'Completed';
@@ -1287,54 +1295,51 @@ window.app = {
             }
 
             column.innerHTML = `
-                <div class="flex items-center justify-between mb-3 px-2">
+                <div class="flex items-center justify-between mb-2 px-2">
                     <h4 class="font-bold ${isCompleted ? 'text-emerald-700' : 'text-gray-700'} text-xs flex items-center gap-2 uppercase tracking-wide">
                         ${isCompleted ? '<i class="fa-solid fa-check-circle text-emerald-500"></i>' : (isUnassigned ? '<i class="fa-solid fa-circle-question text-gray-400"></i>' : '<i class="fa-solid fa-user-check text-brand-500"></i>')}
                         ${columnName}
-                        <span class="${isCompleted ? 'bg-emerald-200 text-emerald-700' : 'bg-gray-200 text-gray-500'} text-[10px] px-1.5 py-0.5 rounded-full">${ticketsInColumn.length}</span>
+                        <span class="${isCompleted ? 'bg-emerald-200 text-emerald-700' : 'bg-gray-200 text-gray-500'} text-[9px] px-1.5 py-0.5 rounded-full">${ticketsInColumn.length}</span>
                     </h4>
                 </div>
-                <div class="flex-1 space-y-2">
+                <!--Reduced spacing between cards-- >
+                <div class="flex-1 space-y-1.5">
                     ${ticketsInColumn.map(ticket => {
                 const urgencyBadge = ticket.priority === 'High' ? 'text-red-600 bg-red-100' : (ticket.priority === 'Medium' ? 'text-orange-600 bg-orange-100' : 'text-blue-600 bg-blue-100');
-                const cardBg = ticket.priority === 'High' ? 'bg-red-50/50 border-red-100' : (ticket.priority === 'Medium' ? 'bg-amber-50/50 border-amber-100' : 'bg-blue-50/50 border-blue-100');
-                const accentColor = ticket.priority === 'High' ? 'bg-red-500' : (ticket.priority === 'Medium' ? 'bg-amber-500' : 'bg-blue-500');
-                const statusBadge = ticket.status === 'Open' ? 'text-emerald-600 bg-emerald-100' : 'text-gray-600 bg-gray-200';
+                const cardBg = ticket.priority === 'High' ? 'bg-white border-l-2 border-l-red-500 border-gray-100' : (ticket.priority === 'Medium' ? 'bg-white border-l-2 border-l-amber-500 border-gray-100' : 'bg-white border-l-2 border-l-blue-500 border-gray-100');
+                const statusBadge = ticket.status === 'Open' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-600 bg-gray-100';
                 const isDraggable = ticket.status === 'Open';
 
                 return `
                         <div draggable="${isDraggable}" ondragstart="event.dataTransfer.setData('text/plain', '${ticket.id}')"
-                             class="${cardBg} p-3 rounded-xl shadow-sm border hover:shadow-md transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'} group relative overflow-hidden">
-                            <div class="absolute top-0 left-0 w-1 h-full ${accentColor}"></div>
+                             class="${cardBg} p-2 rounded-lg shadow-sm border hover:shadow-md transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'} group relative">
                             
-                            <div class="flex justify-between items-start mb-1.5">
-                                <span class="text-[11px] font-bold text-gray-700 uppercase tracking-wider truncate pr-2 w-3/4" title="${ticket.clientName}">${ticket.clientName || 'N/A'}</span>
-                                <span class="text-[9px] text-gray-400 shrink-0">#${ticket.id}</span>
+                            <!-- Header: Client & ID -->
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[11px] font-bold text-gray-800 truncate pr-2 w-3/4" title="${ticket.clientName}">${ticket.clientName || 'N/A'}</span>
+                                <span class="text-[9px] text-gray-400 shrink-0 font-mono">#${ticket.id}</span>
                             </div>
 
-                            <div class="flex items-center gap-1.5 mb-2 flex-wrap text-[9px]">
-                                <span class="px-1.5 py-0.5 rounded font-bold ${urgencyBadge}">${ticket.priority}</span>
-                                <span class="px-1.5 py-0.5 rounded font-bold ${statusBadge}">${ticket.status}</span>
-                                <span class="ml-auto text-gray-400 font-medium">${ticket.dateString || ''}</span>
+                            <!-- Badges Row -->
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="px-1 py-px rounded text-[8px] font-bold uppercase tracking-wider border border-gray-100 ${urgencyBadge}">${ticket.priority}</span>
+                                ${ticket.timeDuration ? `<span class="text-[9px] text-gray-400 flex items-center gap-0.5"><i class="fa-solid fa-clock text-[8px]"></i> ${ticket.timeDuration}h</span>` : ''}
+                                <span class="ml-auto text-[9px] text-gray-400">${ticket.dateString ? ticket.dateString.slice(5) : ''}</span>
                             </div>
 
-                            <p class="text-[11px] text-gray-600 line-clamp-2 leading-relaxed font-medium mb-1">
-                                ${(ticket.description || '').replace(/^•\\s*/, '')}
-                            </p>
+                            <!-- Hover Details (Absolute positioning to not affect layout height, but visible on hover) -->
+                             <div class="hidden group-hover:block absolute left-0 top-full mt-1 z-50 w-full bg-slate-800 text-white p-2 rounded shadow-xl text-[10px] pointer-events-none">
+                                <p class="line-clamp-3">${ticket.description || 'No description'}</p>
+                            </div>
 
-                            ${ticket.timeDuration ? `
-                            <div class="flex items-center gap-1 mt-1.5 text-[10px] text-gray-500">
-                                <i class="fa-solid fa-clock opacity-75"></i>
-                                <span class="font-semibold">${ticket.timeDuration}h</span>
-                            </div>` : ''}
-
-                            <div class="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all bg-white/80 backdrop-blur-sm p-0.5 rounded-lg border border-gray-100 shadow-sm z-10">
-                                <button onclick="app.editTicket(${ticket.id})" class="h-6 w-6 rounded bg-gray-50 text-gray-500 hover:bg-brand-50 hover:text-brand-600 transition-all flex items-center justify-center">
-                                    <i class="fa-solid fa-pen text-[9px]"></i>
+                            <!-- Action Buttons (Only visible on hover) -->
+                            <div class="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-all bg-white/90 backdrop-blur-sm rounded border border-gray-100 shadow-sm z-10">
+                                <button onclick="app.editTicket(${ticket.id})" class="h-5 w-5 rounded hover:bg-brand-50 hover:text-brand-600 flex items-center justify-center transition-colors">
+                                    <i class="fa-solid fa-pen text-[8px]"></i>
                                 </button>
                                 ${app.state.currentUser.role === 'admin' ? `
-                                <button onclick="app.deleteTicket(${ticket.id})" class="h-6 w-6 rounded bg-gray-50 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
-                                    <i class="fa-solid fa-trash text-[9px]"></i>
+                                <button onclick="app.deleteTicket(${ticket.id})" class="h-5 w-5 rounded hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-colors">
+                                    <i class="fa-solid fa-trash text-[8px]"></i>
                                 </button>` : ''}
                             </div>
                         </div>
@@ -1348,7 +1353,7 @@ window.app = {
 
     moveTicketToUser: async (ticketId, assigneeId) => {
         try {
-            console.log(`🏷️ Moving ticket #${ticketId} to user:`, assigneeId);
+            console.log(`🏷️ Moving ticket #${ticketId} to user: `, assigneeId);
 
             // Ensure ID is handled correctly (Dexie uses numbers, Firestore uses strings)
             const finalAssignee = (assigneeId === 'Unassigned' || !assigneeId) ? null :
@@ -1365,7 +1370,7 @@ window.app = {
                 if (user) userName = user.name;
             }
 
-            app.showToast(`Ticket #${ticketId} assigned to ${userName}`, 'success');
+            app.showToast(`Ticket #${ticketId} assigned to ${userName} `, 'success');
             // Force a local refresh to show the change immediately
             await app.loadTickets();
         } catch (e) {
@@ -1400,7 +1405,7 @@ window.app = {
         // CSV Rows
         const rows = tickets.map(t => {
             const assigneeName = userMap[t.assigneeId] || 'Unassigned';
-            const relatedCall = t.callId ? `Call #${t.callId}` : 'Manual Entry';
+            const relatedCall = t.callId ? `Call #${t.callId} ` : 'Manual Entry';
             // Keep original description with bullet points and newlines
             const cleanDesc = t.description;
 
@@ -1418,7 +1423,8 @@ window.app = {
         // Combine into CSV string
         const csvContent = [
             headers.join(','),
-            ...rows.map(r => r.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+            ...rows.map(r => r.map(field => `"${String(field).replace(/" / g, '""')
+                }"`).join(','))
         ].join('\n');
 
         // Trigger Download - Add UTF-8 BOM (\uFEFF) so Excel reads characters like bullet points correctly

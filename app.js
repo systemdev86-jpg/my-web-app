@@ -1384,15 +1384,16 @@ window.app = {
                             </div>
 
                             <!-- Badges Row -->
-                            <div class="flex items-center gap-2 flex-wrap">
+                            <div class="flex items-center gap-2 flex-wrap mb-2">
                                 <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-gray-100 ${urgencyBadge}">${ticket.priority}</span>
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-gray-100 ${statusBadge}">${ticket.status}</span>
                                 ${ticket.timeDuration ? `<span class="text-[11px] text-gray-400 flex items-center gap-0.5"><i class="fa-solid fa-clock text-[10px]"></i> ${ticket.timeDuration}h</span>` : ''}
                                 <span class="ml-auto text-[11px] text-gray-400">${ticket.dateString ? ticket.dateString.slice(5) : ''}</span>
                             </div>
 
-                            <!-- Hover Details -->
-                             <div class="hidden group-hover:block absolute left-0 top-full mt-1 z-50 w-full bg-slate-800 text-white p-3 rounded-xl shadow-xl text-[12px] pointer-events-none">
-                                <p class="line-clamp-4 leading-relaxed">${ticket.description || 'No description'}</p>
+                            <!-- Description (Always Visible) -->
+                            <div class="mt-2 text-[12px] text-gray-600 leading-relaxed border-t border-gray-50 pt-2">
+                                <p class="line-clamp-3">${ticket.description || 'No description'}</p>
                             </div>
 
                             <!-- Action Buttons -->

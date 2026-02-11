@@ -588,10 +588,15 @@ window.app = {
                         <p class="text-xs text-gray-500 uppercase">${user.role} • PIN: ${isMe || app.state.currentUser.role === 'admin' ? user.pin : '****'}</p>
                     </div>
                 </div>
-                ${!isMe ? `
-                <button onclick="app.deleteUser(${user.id})" class="text-gray-400 hover:text-red-500 p-2 transition-colors">
-                    <i class="fa-solid fa-trash"></i>
-                </button>` : ''}
+                <div class="flex items-center gap-2">
+                    <button onclick="app.showEditUserModal(${user.id})" class="text-gray-400 hover:text-brand-600 p-2 transition-colors">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    ${!isMe ? `
+                    <button onclick="app.deleteUser(${user.id})" class="text-gray-400 hover:text-red-500 p-2 transition-colors">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>` : ''}
+                </div>
             `;
             list.appendChild(card);
         });
@@ -606,6 +611,69 @@ window.app = {
             await db.users.delete(id);
             app.loadUsersList();
             app.showToast('User deleted.', 'info');
+        }
+    },
+
+    showEditUserModal: async (id) => {
+        if (app.state.currentUser.role !== 'admin') {
+            app.showToast("Only admins can edit users", "error");
+            return;
+        }
+
+        const user = await db.users.get(id);
+        if (!user) return;
+
+        document.getElementById('edit-user-id').value = user.id;
+        document.getElementById('edit-user-name').value = user.name;
+        document.getElementById('edit-user-pin').value = user.pin;
+        document.getElementById('edit-user-role').value = user.role;
+
+        const modal = document.getElementById('edit-user-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            document.getElementById('edit-user-modal-content').classList.remove('scale-95');
+        }, 10);
+    },
+
+    closeEditUserModal: () => {
+        const modal = document.getElementById('edit-user-modal');
+        modal.classList.add('opacity-0');
+        document.getElementById('edit-user-modal-content').classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    },
+
+    updateUser: async () => {
+        const id = parseInt(document.getElementById('edit-user-id').value);
+        const name = document.getElementById('edit-user-name').value.trim();
+        const pin = document.getElementById('edit-user-pin').value.trim();
+        const role = document.getElementById('edit-user-role').value;
+
+        if (!name || !pin) {
+            app.showToast('Name and PIN are required.', 'error');
+            return;
+        }
+
+        try {
+            await db.users.update(id, { name, pin, role });
+
+            // If I updated myself, sync state
+            if (app.state.currentUser && app.state.currentUser.id === id) {
+                app.state.currentUser.name = name;
+                app.state.currentUser.role = role;
+                app.state.currentUser.pin = pin;
+
+                // Update UI elements dependent on current user
+                document.getElementById('sidebar-username').innerText = name;
+                document.getElementById('sidebar-role').innerText = role.toUpperCase();
+            }
+
+            app.showToast('User updated successfully.', 'success');
+            app.closeEditUserModal();
+            app.loadUsersList();
+        } catch (e) {
+            console.error("Error updating user", e);
+            app.showToast('Failed to update user.', 'error');
         }
     },
 

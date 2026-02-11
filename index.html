@@ -540,6 +540,45 @@
         </div>
     </div>
 
+    <!-- Edit User Modal -->
+    <div id="edit-user-modal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="glass w-full max-w-md p-6 rounded-2xl transform scale-95 transition-transform duration-300"
+            id="edit-user-modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-gray-800">Edit User</h3>
+                <button onclick="app.closeEditUserModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <input type="hidden" id="edit-user-id">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Full Name</label>
+                    <input type="text" id="edit-user-name" placeholder="Full Name"
+                        class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">PIN (Password)</label>
+                    <input type="text" id="edit-user-pin" placeholder="Set 4-Digit PIN" maxlength="4"
+                        class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Role</label>
+                    <select id="edit-user-role"
+                        class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-500 outline-none">
+                        <option value="agent">Agent (Standard)</option>
+                        <option value="admin">Admin (Full Access)</option>
+                    </select>
+                </div>
+                <button onclick="app.updateUser()"
+                    class="w-full bg-brand-600 text-white font-bold py-3 rounded-xl hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20">
+                    Update User
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Audio Player Modal (Hidden by default) -->
     <div id="audio-modal"
         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">

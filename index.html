@@ -503,6 +503,27 @@
             </section>
 
             <!-- DAILY CASE NOTES SECTION -->
+            <section id="section-users" class="hidden animate-fade-in max-w-4xl mx-auto py-10 px-4">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-10">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">User Management</h3>
+                            <p class="text-gray-500 font-medium">Create and manage system users and permissions</p>
+                        </div>
+                        <button onclick="app.showAddUserModal()"
+                            class="bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20 active:scale-95 flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus"></i>
+                            Add User
+                        </button>
+                    </div>
+
+                    <div id="users-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Users go here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- DAILY CASE NOTES SECTION -->
             <section id="section-casenotes" class="hidden animate-fade-in h-full overflow-y-auto">
                 <div class="glass p-8 rounded-3xl shadow-lg border border-white/60">
                     <div class="flex justify-between items-center mb-6">
@@ -600,28 +621,90 @@
     <!-- Add User Modal -->
     <div id="add-user-modal"
         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <div class="glass w-full max-w-md p-6 rounded-2xl transform scale-95 transition-transform duration-300"
+        <div class="glass w-full max-w-md p-8 rounded-3xl transform scale-95 transition-transform duration-300"
             id="add-user-modal-content">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-gray-800">New User</h3>
-                <button onclick="app.closeAddUserModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800">New User</h3>
+                    <p class="text-xs text-slate-400 mt-1">Create a new system account</p>
+                </div>
+                <button onclick="app.closeAddUserModal()"
+                    class="h-10 w-10 rounded-xl bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all flex items-center justify-center">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
-            <div class="space-y-4">
-                <input type="text" id="new-user-name" placeholder="Full Name"
-                    class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-500 outline-none">
-                <input type="password" id="new-user-pin" placeholder="Set 4-Digit PIN" maxlength="4"
-                    class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-500 outline-none">
-                <select id="new-user-role"
-                    class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-500 outline-none">
-                    <option value="agent">Agent (Standard)</option>
-                    <option value="admin">Admin (Full Access)</option>
-                </select>
-                <button onclick="app.createUser()"
-                    class="w-full bg-brand-600 text-white font-bold py-3 rounded-xl hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20">
-                    Create User
-                </button>
+
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Full
+                        Name</label>
+                    <input type="text" id="new-user-name" placeholder="Enter Full Name"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all font-medium">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Set 4-Digit
+                        PIN</label>
+                    <input type="password" id="new-user-pin" placeholder="****" maxlength="4"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all font-medium">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">User
+                        Role</label>
+                    <select id="new-user-role"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all font-medium">
+                        <option value="agent">Agent (Standard)</option>
+                        <option value="admin">Admin (Full Access)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Menu
+                        Permissions</label>
+                    <div class="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="permission" value="dashboard" checked
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"> Dashboard
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="permission" value="calls" checked
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"> Calls
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="permission" value="activities" checked
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"> Tasks
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="permission" value="tickets" checked
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"> Tickets
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="permission" value="casenotes" checked
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"> Case Notes
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="permission" value="departments" checked
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                            Departments
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="permission" value="users"
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"> User Mgmt
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="app.closeAddUserModal()"
+                        class="flex-1 px-6 py-3.5 rounded-xl border border-slate-200 text-slate-500 font-bold hover:bg-slate-50 transition-all">
+                        Cancel
+                    </button>
+                    <button onclick="app.createUser()"
+                        class="flex-[2] bg-brand-500 text-white font-bold py-3.5 rounded-xl hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20 active:scale-95">
+                        Create Account
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -629,38 +712,81 @@
     <!-- Edit User Modal -->
     <div id="edit-user-modal"
         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <div class="glass w-full max-w-md p-6 rounded-2xl transform scale-95 transition-transform duration-300"
+        <div class="glass w-full max-w-md p-8 rounded-3xl transform scale-95 transition-transform duration-300"
             id="edit-user-modal-content">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-gray-800">Edit User</h3>
-                <button onclick="app.closeEditUserModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800">Edit User</h3>
+                    <p class="text-xs text-slate-400 mt-1">Update account details and access</p>
+                </div>
+                <button onclick="app.closeEditUserModal()"
+                    class="h-10 w-10 rounded-xl bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all flex items-center justify-center">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
-            <div class="space-y-4">
+
+            <div class="space-y-6">
                 <input type="hidden" id="edit-user-id">
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Full Name</label>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Full
+                        Name</label>
                     <input type="text" id="edit-user-name" placeholder="Full Name"
-                        class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-500 outline-none">
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all font-medium">
                 </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">PIN (Password)</label>
-                    <input type="text" id="edit-user-pin" placeholder="Set 4-Digit PIN" maxlength="4"
-                        class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-500 outline-none">
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">PIN
+                        (Password)</label>
+                    <input type="text" id="edit-user-pin" placeholder="****" maxlength="4"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all font-medium">
                 </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Role</label>
-                    <select id="edit-user-role"
-                        class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-500 outline-none">
-                        <option value="agent">Agent (Standard)</option>
-                        <option value="admin">Admin (Full Access)</option>
-                    </select>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Menu
+                        Permissions</label>
+                    <div class="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="edit-permission" value="dashboard"
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"> Dashboard
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="edit-permission" value="calls"
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"> Calls
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="edit-permission" value="activities"
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"> Tasks
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="edit-permission" value="tickets"
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"> Tickets
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="edit-permission" value="casenotes"
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"> Case Notes
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="edit-permission" value="departments"
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                            Departments
+                        </label>
+                        <label class="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="edit-permission" value="users"
+                                class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"> User Mgmt
+                        </label>
+                    </div>
                 </div>
-                <button onclick="app.updateUser()"
-                    class="w-full bg-brand-600 text-white font-bold py-3 rounded-xl hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20">
-                    Update User
-                </button>
+
+                <div class="flex gap-3">
+                    <button onclick="app.closeEditUserModal()"
+                        class="flex-1 px-6 py-3.5 rounded-xl border border-slate-200 text-slate-500 font-bold hover:bg-slate-50 transition-all">
+                        Cancel
+                    </button>
+                    <button onclick="app.updateUser()"
+                        class="flex-[2] bg-brand-500 text-white font-bold py-3.5 rounded-xl hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20 active:scale-95">
+                        Save Changes
+                    </button>
+                </div>
             </div>
         </div>
     </div>

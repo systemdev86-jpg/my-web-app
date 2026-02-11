@@ -24,7 +24,12 @@ window.app = {
             let ravishUser = users.find(u => u.name.toLowerCase() === 'ravish');
             if (!ravishUser && users.length === 0) {
                 console.log("Seeding local admin...");
-                await db.users.add({ name: "Ravish", pin: "123", role: "admin" });
+                await db.users.add({
+                    name: "Ravish",
+                    pin: "123",
+                    role: "admin",
+                    permissions: "dashboard,calls,activities,tickets,casenotes,departments,users"
+                });
             }
         } catch (e) { console.warn("Seed check failed", e); }
 
@@ -34,6 +39,7 @@ window.app = {
         const savedUserId = localStorage.getItem('erp_logged_in_user_id');
         const savedUserName = localStorage.getItem('erp_logged_in_username');
         const savedUserRole = localStorage.getItem('erp_logged_in_user_role');
+        const savedUserPermissions = localStorage.getItem('erp_logged_in_user_permissions');
 
         if (savedUserId && savedUserName) {
             console.log("Optimistic login for:", savedUserName);
@@ -41,7 +47,8 @@ window.app = {
             app.state.currentUser = {
                 id: isNaN(savedUserId) ? savedUserId : parseInt(savedUserId),
                 name: savedUserName,
-                role: savedUserRole || 'agent'
+                role: savedUserRole || 'agent',
+                permissions: savedUserPermissions || ''
             };
 
             app.updateUIForUser(app.state.currentUser);
@@ -160,6 +167,7 @@ window.app = {
         localStorage.setItem('erp_logged_in_user_id', user.id);
         localStorage.setItem('erp_logged_in_username', user.name);
         localStorage.setItem('erp_logged_in_user_role', user.role);
+        localStorage.setItem('erp_logged_in_user_permissions', user.permissions || '');
 
         app.updateUIForUser(user);
         app.showSection('dashboard');
@@ -171,14 +179,27 @@ window.app = {
         document.getElementById('sidebar-role').innerText = user.role.toUpperCase();
         document.getElementById('sidebar-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`;
 
+        // List of all navigatable sections
+        const allSections = ['dashboard', 'calls', 'activities', 'tickets', 'casenotes', 'departments', 'users'];
+        const permissions = user.permissions ? user.permissions.split(',') : [];
+
+        allSections.forEach(section => {
+            const navItem = document.getElementById(`nav-${section}`);
+            if (navItem) {
+                // Admin sees everything, or if they have permission
+                if (user.role === 'admin' || permissions.includes(section)) {
+                    navItem.classList.remove('hidden');
+                } else {
+                    navItem.classList.add('hidden');
+                }
+            }
+        });
+
         // Admin specific buttons
+        const delBtn = document.getElementById('btn-delete-closed');
         if (user.role === 'admin') {
-            document.getElementById('nav-users').classList.remove('hidden');
-            const delBtn = document.getElementById('btn-delete-closed');
             if (delBtn) delBtn.classList.remove('hidden');
         } else {
-            document.getElementById('nav-users').classList.add('hidden');
-            const delBtn = document.getElementById('btn-delete-closed');
             if (delBtn) delBtn.classList.add('hidden');
         }
 
@@ -650,6 +671,10 @@ window.app = {
         const pin = document.getElementById('new-user-pin').value.trim();
         const role = document.getElementById('new-user-role').value;
 
+        // Get selected permissions
+        const permissionCheckboxes = document.querySelectorAll('input[name="permission"]:checked');
+        const permissions = Array.from(permissionCheckboxes).map(cb => cb.value).join(',');
+
         if (!name || !pin) {
             app.showToast('Name and PIN are required.', 'error');
             return;
@@ -661,7 +686,7 @@ window.app = {
             return;
         }
 
-        await db.users.add({ name, pin, role });
+        await db.users.add({ name, pin, role, permissions });
         app.showToast('User created successfully.', 'success');
         app.closeAddUserModal();
         app.loadUsersList();
@@ -675,24 +700,42 @@ window.app = {
 
         users.forEach(user => {
             const isMe = user.id === app.state.currentUser.id;
+            const permissions = user.permissions ? user.permissions.split(',') : [];
+
             const card = document.createElement('div');
-            card.className = 'glass p-4 rounded-xl flex items-center justify-between border border-gray-100';
+            card.className = 'bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group';
             card.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=${user.role === 'admin' ? '6366f1' : '10b981'}&color=fff" class="h-10 w-10 rounded-full" alt="Profile">
-                    <div>
-                        <p class="font-bold text-gray-800 text-sm">${user.name} ${isMe ? '(You)' : ''}</p>
-                        <p class="text-xs text-gray-500 uppercase">${user.role} • PIN: ${isMe || app.state.currentUser.role === 'admin' ? user.pin : '****'}</p>
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 overflow-hidden">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=f8fafc&color=64748b" class="h-full w-full object-cover">
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm leading-tight">${user.name} ${isMe ? '<span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded ml-1">YOU</span>' : ''}</h4>
+                            <p class="text-xs font-bold ${user.role === 'admin' ? 'text-indigo-600' : 'text-emerald-600'} uppercase tracking-tight mt-1">${user.role}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="app.showEditUserModal(${user.id})" 
+                            class="h-8 w-8 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center" title="Edit Permissions">
+                            <i class="fa-solid fa-pen-to-square text-sm"></i>
+                        </button>
+                        ${!isMe ? `
+                        <button onclick="app.deleteUser(${user.id})" 
+                            class="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all flex items-center justify-center" title="Remove User">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>` : ''}
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="app.showEditUserModal(${user.id})" class="text-gray-400 hover:text-brand-600 p-2 transition-colors">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                    ${!isMe ? `
-                    <button onclick="app.deleteUser(${user.id})" class="text-gray-400 hover:text-red-500 p-2 transition-colors">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>` : ''}
+                
+                <div class="flex flex-wrap gap-1.5">
+                    ${permissions.map(p => `<span class="px-2 py-0.5 rounded-md bg-slate-50 border border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${p}</span>`).join('')}
+                    ${permissions.length === 0 ? '<span class="text-[10px] text-slate-300 font-medium">No permissions set</span>' : ''}
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">System PIN</span>
+                    <span class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg">${isMe || app.state.currentUser.role === 'admin' ? user.pin : '****'}</span>
                 </div>
             `;
             list.appendChild(card);
@@ -723,7 +766,12 @@ window.app = {
         document.getElementById('edit-user-id').value = user.id;
         document.getElementById('edit-user-name').value = user.name;
         document.getElementById('edit-user-pin').value = user.pin;
-        document.getElementById('edit-user-role').value = user.role;
+
+        // Reset and Set checkboxes
+        const permissions = user.permissions ? user.permissions.split(',') : [];
+        document.querySelectorAll('input[name="edit-permission"]').forEach(cb => {
+            cb.checked = permissions.includes(cb.value);
+        });
 
         const modal = document.getElementById('edit-user-modal');
         modal.classList.remove('hidden');
@@ -744,7 +792,9 @@ window.app = {
         const id = parseInt(document.getElementById('edit-user-id').value);
         const name = document.getElementById('edit-user-name').value.trim();
         const pin = document.getElementById('edit-user-pin').value.trim();
-        const role = document.getElementById('edit-user-role').value;
+
+        const permissionCheckboxes = document.querySelectorAll('input[name="edit-permission"]:checked');
+        const permissions = Array.from(permissionCheckboxes).map(cb => cb.value).join(',');
 
         if (!name || !pin) {
             app.showToast('Name and PIN are required.', 'error');
@@ -752,17 +802,14 @@ window.app = {
         }
 
         try {
-            await db.users.update(id, { name, pin, role });
+            await db.users.update(id, { name, pin, permissions });
 
             // If I updated myself, sync state
             if (app.state.currentUser && app.state.currentUser.id === id) {
                 app.state.currentUser.name = name;
-                app.state.currentUser.role = role;
                 app.state.currentUser.pin = pin;
-
-                // Update UI elements dependent on current user
-                document.getElementById('sidebar-username').innerText = name;
-                document.getElementById('sidebar-role').innerText = role.toUpperCase();
+                app.state.currentUser.permissions = permissions;
+                app.updateUIForUser(app.state.currentUser);
             }
 
             app.showToast('User updated successfully.', 'success');

@@ -1299,8 +1299,13 @@ window.app = {
                                 <span class="ml-auto text-[10px] text-gray-400">${ticket.dateString || ''}</span>
                             </div>
                             <p class="text-[13px] text-gray-600 line-clamp-3 mb-4 leading-relaxed font-medium">
-                                ${(ticket.description || '').replace(/^•\s*/, '')}
+                                ${(ticket.description || '').replace(/^•\\s*/, '')}
                             </p>
+                            ${ticket.timeDuration ? `
+                            <div class="flex items-center gap-1 mb-3 text-xs text-gray-500">
+                                <i class="fa-solid fa-clock"></i>
+                                <span class="font-semibold">${ticket.timeDuration} hrs</span>
+                            </div>` : ''}
                             <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                 <button onclick="app.editTicket(${ticket.id})" class="h-7 w-7 rounded-lg bg-gray-50 text-gray-400 hover:bg-brand-50 hover:text-brand-600 transition-all flex items-center justify-center">
                                     <i class="fa-solid fa-pen text-[10px]"></i>
@@ -1529,6 +1534,7 @@ window.app = {
         document.getElementById('edit-ticket-priority').value = ticket.priority;
         document.getElementById('edit-ticket-status').value = ticket.status;
         document.getElementById('edit-ticket-date').value = ticket.dateString || "";
+        document.getElementById('edit-ticket-duration').value = ticket.timeDuration || "";
 
         // Populate Assignee dropdown
         const select = document.getElementById('edit-ticket-assignee');
@@ -1559,6 +1565,7 @@ window.app = {
         const priority = document.getElementById('edit-ticket-priority').value;
         const status = document.getElementById('edit-ticket-status').value;
         const dateString = document.getElementById('edit-ticket-date').value;
+        const timeDuration = parseFloat(document.getElementById('edit-ticket-duration').value) || null;
 
         if (!rawDescription) {
             app.showToast('Description is required.', 'error');
@@ -1580,7 +1587,8 @@ window.app = {
                 priority,
                 status,
                 dateString,
-                assigneeId
+                assigneeId,
+                timeDuration
             });
 
             console.log('✅ Ticket update complete');

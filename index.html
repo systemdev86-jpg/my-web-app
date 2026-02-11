@@ -114,14 +114,23 @@
 
         <!-- User Profile (Bottom) -->
         <div class="p-6">
-            <div class="flex items-center gap-3 p-3 rounded-2xl bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
-                onclick="app.logout()">
-                <img src="https://ui-avatars.com/api/?name=User&background=0ea5e9&color=fff" id="sidebar-avatar"
-                    class="h-10 w-10 rounded-xl shadow-sm" alt="Profile">
-                <div class="hidden lg:block overflow-hidden">
-                    <p class="text-sm font-bold text-gray-800 truncate" id="sidebar-username">User</p>
-                    <p class="text-xs font-medium text-gray-400 truncate" id="sidebar-role">Online</p>
+            <div
+                class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100 group transition-all">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <img src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" id="sidebar-avatar"
+                        class="h-10 w-10 rounded-xl shadow-sm" alt="Profile">
+                    <div class="hidden lg:block overflow-hidden">
+                        <p class="text-sm font-bold text-slate-800 truncate" id="sidebar-username">User</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight" id="sidebar-role">
+                            Online</p>
+                    </div>
                 </div>
+                <button onclick="app.logout()"
+                    class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all font-bold text-[10px] uppercase tracking-wider"
+                    title="Logout">
+                    <span>Logout</span>
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
             </div>
         </div>
     </aside>

@@ -1230,14 +1230,18 @@ window.app = {
         const userMap = {};
         users.forEach(u => userMap[u.id] = u.name);
 
-        // Group tickets by User (Assignee)
+        // Separate open and closed tickets
+        const openTickets = tickets.filter(t => t.status === 'Open');
+        const closedTickets = tickets.filter(t => t.status === 'Closed');
+
+        // Group OPEN tickets by User (Assignee)
         const grouped = { 'Unassigned': [] };
         // Pre-fill with all existing users
         users.forEach(u => {
             grouped[u.id] = [];
         });
 
-        tickets.forEach(t => {
+        openTickets.forEach(t => {
             if (t.assigneeId && grouped[t.assigneeId]) {
                 grouped[t.assigneeId].push(t);
             } else {
@@ -1245,39 +1249,42 @@ window.app = {
             }
         });
 
-        // Column keys: 'Unassigned' first, then users
-        const columnKeys = ['Unassigned', ...users.map(u => u.id)];
+        // Column keys: 'Unassigned' first, then users, then 'Completed'
+        const columnKeys = ['Unassigned', ...users.map(u => u.id), 'Completed'];
 
         columnKeys.forEach(key => {
-            const ticketsInColumn = grouped[key];
+            const isCompleted = key === 'Completed';
+            const ticketsInColumn = isCompleted ? closedTickets : (grouped[key] || []);
             const isUnassigned = key === 'Unassigned';
-            const columnName = isUnassigned ? 'Unassigned' : (userMap[key] || 'Unknown');
+            const columnName = isCompleted ? 'Completed Tickets' : (isUnassigned ? 'Unassigned' : (userMap[key] || 'Unknown'));
 
             const column = document.createElement('div');
-            column.className = 'kanban-column flex-shrink-0 w-80 bg-gray-50/50 rounded-[2.5rem] p-4 flex flex-col min-h-[400px] border border-gray-100/50';
+            column.className = `kanban-column flex-shrink-0 w-80 ${isCompleted ? 'bg-gradient-to-br from-emerald-50/80 to-teal-50/80 border-emerald-200' : 'bg-gray-50/50 border-gray-100/50'} rounded-[2.5rem] p-4 flex flex-col min-h-[400px] border`;
             column.dataset.assigneeId = key;
 
-            // Drag & Drop events for column
-            column.ondragover = (e) => {
-                e.preventDefault();
-                column.classList.add('bg-brand-50/50');
-            };
-            column.ondragleave = () => {
-                column.classList.remove('bg-brand-50/50');
-            };
-            column.ondrop = (e) => {
-                e.preventDefault();
-                column.classList.remove('bg-brand-50/50');
-                const ticketId = e.dataTransfer.getData('text/plain');
-                app.moveTicketToUser(parseInt(ticketId), key);
-            };
+            // Drag & Drop events for column (disabled for Completed)
+            if (!isCompleted) {
+                column.ondragover = (e) => {
+                    e.preventDefault();
+                    column.classList.add('bg-brand-50/50');
+                };
+                column.ondragleave = () => {
+                    column.classList.remove('bg-brand-50/50');
+                };
+                column.ondrop = (e) => {
+                    e.preventDefault();
+                    column.classList.remove('bg-brand-50/50');
+                    const ticketId = e.dataTransfer.getData('text/plain');
+                    app.moveTicketToUser(parseInt(ticketId), key);
+                };
+            }
 
             column.innerHTML = `
                 <div class="flex items-center justify-between mb-4 px-2">
-                    <h4 class="font-bold text-gray-700 text-sm flex items-center gap-2 uppercase tracking-wide">
-                        ${isUnassigned ? '<i class="fa-solid fa-circle-question text-gray-400"></i>' : '<i class="fa-solid fa-user-check text-brand-500"></i>'}
+                    <h4 class="font-bold ${isCompleted ? 'text-emerald-700' : 'text-gray-700'} text-sm flex items-center gap-2 uppercase tracking-wide">
+                        ${isCompleted ? '<i class="fa-solid fa-check-circle text-emerald-500"></i>' : (isUnassigned ? '<i class="fa-solid fa-circle-question text-gray-400"></i>' : '<i class="fa-solid fa-user-check text-brand-500"></i>')}
                         ${columnName}
-                        <span class="bg-gray-200 text-gray-500 text-[10px] px-1.5 py-0.5 rounded-full">${ticketsInColumn.length}</span>
+                        <span class="${isCompleted ? 'bg-emerald-200 text-emerald-700' : 'bg-gray-200 text-gray-500'} text-[10px] px-1.5 py-0.5 rounded-full">${ticketsInColumn.length}</span>
                     </h4>
                 </div>
                 <div class="flex-1 space-y-4">
@@ -1286,10 +1293,11 @@ window.app = {
                 const cardBg = ticket.priority === 'High' ? 'bg-red-50/60 border-red-100' : (ticket.priority === 'Medium' ? 'bg-amber-50/60 border-amber-100' : 'bg-blue-50/60 border-blue-100');
                 const accentColor = ticket.priority === 'High' ? 'bg-red-500' : (ticket.priority === 'Medium' ? 'bg-amber-500' : 'bg-blue-500');
                 const statusBadge = ticket.status === 'Open' ? 'text-emerald-600 bg-emerald-100' : 'text-gray-600 bg-gray-200';
+                const isDraggable = ticket.status === 'Open';
 
                 return `
-                        <div draggable="true" ondragstart="event.dataTransfer.setData('text/plain', '${ticket.id}')"
-                             class="${cardBg} p-5 rounded-2xl shadow-sm border hover:shadow-md transition-all cursor-grab active:cursor-grabbing group relative overflow-hidden">
+                        <div draggable="${isDraggable}" ondragstart="event.dataTransfer.setData('text/plain', '${ticket.id}')"
+                             class="${cardBg} p-5 rounded-2xl shadow-sm border hover:shadow-md transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'} group relative overflow-hidden">
                             <div class="absolute top-0 left-0 w-1 h-full ${accentColor}"></div>
                             <div class="flex justify-between items-start mb-3">
                                 <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Client: ${ticket.clientName || 'N/A'}</span>

@@ -16,40 +16,56 @@ window.app = {
     },
 
     init: async () => {
-        // --- Seed Initial User ---
-        const users = await db.users.toArray();
-        let ravishUser = users.find(u => u.name.toLowerCase() === 'ravish');
+        console.log("Initializing App...");
 
-        if (!ravishUser) {
-            console.log("Creating admin user 'Ravish'...");
-            await db.users.add({
-                name: "Ravish",
-                pin: "123",
-                role: "admin"
-            });
-        }
+        // --- Seed Initial User (local fallback) ---
+        try {
+            const users = await db.users.toArray();
+            let ravishUser = users.find(u => u.name.toLowerCase() === 'ravish');
+            if (!ravishUser && users.length === 0) {
+                console.log("Seeding local admin...");
+                await db.users.add({ name: "Ravish", pin: "123", role: "admin" });
+            }
+        } catch (e) { console.warn("Seed check failed", e); }
 
-        // --- Data Retention Cleanup (Keep 3 Months) ---
         await app.cleanupOldData();
 
         // --- Persistent Login Check ---
         const savedUserId = localStorage.getItem('erp_logged_in_user_id');
-        if (savedUserId) {
-            const user = await db.users.get(parseInt(savedUserId));
-            if (user) {
-                app.setSessionUser(user);
-                app.checkMicSupport();
-                return;
-            }
+        const savedUserName = localStorage.getItem('erp_logged_in_username');
+        const savedUserRole = localStorage.getItem('erp_logged_in_user_role');
+
+        if (savedUserId && savedUserName) {
+            console.log("Optimistic login for:", savedUserName);
+            // Optimistically set state so UI loads immediately
+            app.state.currentUser = {
+                id: isNaN(savedUserId) ? savedUserId : parseInt(savedUserId),
+                name: savedUserName,
+                role: savedUserRole || 'agent'
+            };
+
+            app.updateUIForUser(app.state.currentUser);
+            app.showSection('dashboard');
+            app.checkMicSupport();
+
+            // Background verification: ensure user actually exists in DB
+            setTimeout(async () => {
+                const lookupId = isNaN(savedUserId) ? savedUserId : parseInt(savedUserId);
+                const user = await db.users.get(lookupId) || await db.users.where('name').equalsIgnoreCase(savedUserName).first();
+                if (!user) {
+                    console.warn("Session verification failed. Logging out.");
+                    app.logout();
+                }
+            }, 2000);
+
+            return;
         }
 
         // Show Login Modal if no session
         const modal = document.getElementById('login-modal');
         if (modal) {
             modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-            }, 50);
+            setTimeout(() => modal.classList.remove('opacity-0'), 50);
         }
 
         app.checkMicSupport();
@@ -142,7 +158,14 @@ window.app = {
     setSessionUser: (user) => {
         app.state.currentUser = user;
         localStorage.setItem('erp_logged_in_user_id', user.id);
+        localStorage.setItem('erp_logged_in_username', user.name);
+        localStorage.setItem('erp_logged_in_user_role', user.role);
 
+        app.updateUIForUser(user);
+        app.showSection('dashboard');
+    },
+
+    updateUIForUser: (user) => {
         // Update Sidebar
         document.getElementById('sidebar-username').innerText = user.name;
         document.getElementById('sidebar-role').innerText = user.role.toUpperCase();
@@ -155,15 +178,12 @@ window.app = {
             document.getElementById('nav-users').classList.add('hidden');
         }
 
-        // Hide Modal
+        // Hide Login Modal
         const modal = document.getElementById('login-modal');
         if (modal) {
             modal.classList.add('opacity-0', 'pointer-events-none');
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
-
-        // Load initial data
-        app.showSection('dashboard');
     },
 
     login: async () => {
@@ -196,6 +216,8 @@ window.app = {
     logout: async () => {
         app.state.currentUser = null;
         localStorage.removeItem('erp_logged_in_user_id');
+        localStorage.removeItem('erp_logged_in_username');
+        localStorage.removeItem('erp_logged_in_user_role');
         document.getElementById('login-username').value = '';
         document.getElementById('login-password').value = '';
 

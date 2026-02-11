@@ -30,13 +30,7 @@ window.app = {
 
         await app.cleanupOldData();
 
-        // Clear ALL tickets as requested
-        try {
-            await db.tickets.clear();
-            console.log("All tickets cleared as requested.");
-        } catch (e) { console.warn("Tickets clear failed", e); }
-
-        // --- Persistent Login Check ---
+        // Persistent Login Check ---
         const savedUserId = localStorage.getItem('erp_logged_in_user_id');
         const savedUserName = localStorage.getItem('erp_logged_in_username');
         const savedUserRole = localStorage.getItem('erp_logged_in_user_role');
@@ -1427,16 +1421,21 @@ window.app = {
                             </div>
 
                             <!-- Action Row (Always Visible) -->
-                            <div class="mt-3 pt-2 border-t border-gray-50 flex justify-end gap-2">
-                                <button onclick="event.stopPropagation(); app.editTicket(${ticket.id})" 
-                                    class="px-2.5 py-1 rounded-lg bg-gray-50 hover:bg-brand-50 text-gray-500 hover:text-brand-600 flex items-center gap-1.5 transition-all text-[10px] font-bold uppercase tracking-wide">
-                                    <i class="fa-solid fa-pen text-[9px]"></i> Edit
-                                </button>
-                                ${app.state.currentUser.role === 'admin' ? `
-                                <button onclick="event.stopPropagation(); app.deleteTicket(${ticket.id})" 
-                                    class="px-2.5 py-1 rounded-lg bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center gap-1.5 transition-all text-[10px] font-bold uppercase tracking-wide">
-                                    <i class="fa-solid fa-trash text-[9px]"></i> Delete
-                                </button>` : ''}
+                            <div class="mt-3 pt-2 border-t border-gray-100 flex justify-between items-center">
+                                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
+                                    <i class="fa-solid fa-hashtag text-[8px]"></i> ${ticket.id}
+                                </span>
+                                <div class="flex gap-2">
+                                    <button onclick="event.stopPropagation(); app.editTicket(${ticket.id})" 
+                                        class="px-3 py-1.5 rounded-lg bg-brand-500 text-white hover:bg-brand-600 flex items-center gap-1.5 transition-all text-[11px] font-bold shadow-sm shadow-brand-200">
+                                        <i class="fa-solid fa-pen-to-square text-[10px]"></i> EDIT
+                                    </button>
+                                    ${app.state.currentUser.role === 'admin' ? `
+                                    <button onclick="event.stopPropagation(); app.deleteTicket(${ticket.id})" 
+                                        class="px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-600 flex items-center gap-1.5 transition-all text-[10px] font-bold">
+                                        <i class="fa-solid fa-trash text-[10px]"></i>
+                                    </button>` : ''}
+                                </div>
                             </div>
                         </div>
                         `;

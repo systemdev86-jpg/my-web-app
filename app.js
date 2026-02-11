@@ -1375,34 +1375,34 @@ window.app = {
 
                 return `
                         <div draggable="${isDraggable}" ondragstart="event.dataTransfer.setData('text/plain', '${ticket.id}')"
-                             class="${cardBg} p-2 rounded-lg shadow-sm border hover:shadow-md transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'} group relative">
+                             class="${cardBg} p-3 rounded-xl shadow-sm border hover:shadow-md transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'} group relative">
                             
                             <!-- Header: Client & ID -->
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[11px] font-bold text-gray-800 truncate pr-2 w-3/4" title="${ticket.clientName}">${ticket.clientName || 'N/A'}</span>
-                                <span class="text-[9px] text-gray-400 shrink-0 font-mono">#${ticket.id}</span>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-[13px] font-bold text-gray-800 truncate pr-2 w-3/4" title="${ticket.clientName}">${ticket.clientName || 'N/A'}</span>
+                                <span class="text-[11px] text-gray-400 shrink-0 font-mono">#${ticket.id}</span>
                             </div>
 
                             <!-- Badges Row -->
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <span class="px-1 py-px rounded text-[8px] font-bold uppercase tracking-wider border border-gray-100 ${urgencyBadge}">${ticket.priority}</span>
-                                ${ticket.timeDuration ? `<span class="text-[9px] text-gray-400 flex items-center gap-0.5"><i class="fa-solid fa-clock text-[8px]"></i> ${ticket.timeDuration}h</span>` : ''}
-                                <span class="ml-auto text-[9px] text-gray-400">${ticket.dateString ? ticket.dateString.slice(5) : ''}</span>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-gray-100 ${urgencyBadge}">${ticket.priority}</span>
+                                ${ticket.timeDuration ? `<span class="text-[11px] text-gray-400 flex items-center gap-0.5"><i class="fa-solid fa-clock text-[10px]"></i> ${ticket.timeDuration}h</span>` : ''}
+                                <span class="ml-auto text-[11px] text-gray-400">${ticket.dateString ? ticket.dateString.slice(5) : ''}</span>
                             </div>
 
-                            <!-- Hover Details (Absolute positioning to not affect layout height, but visible on hover) -->
-                             <div class="hidden group-hover:block absolute left-0 top-full mt-1 z-50 w-full bg-slate-800 text-white p-2 rounded shadow-xl text-[10px] pointer-events-none">
-                                <p class="line-clamp-3">${ticket.description || 'No description'}</p>
+                            <!-- Hover Details -->
+                             <div class="hidden group-hover:block absolute left-0 top-full mt-1 z-50 w-full bg-slate-800 text-white p-3 rounded-xl shadow-xl text-[12px] pointer-events-none">
+                                <p class="line-clamp-4 leading-relaxed">${ticket.description || 'No description'}</p>
                             </div>
 
-                            <!-- Action Buttons (Only visible on hover) -->
-                            <div class="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-all bg-white/90 backdrop-blur-sm rounded border border-gray-100 shadow-sm z-10">
-                                <button onclick="app.editTicket(${ticket.id})" class="h-5 w-5 rounded hover:bg-brand-50 hover:text-brand-600 flex items-center justify-center transition-colors">
-                                    <i class="fa-solid fa-pen text-[8px]"></i>
+                            <!-- Action Buttons -->
+                            <div class="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-all bg-white/95 backdrop-blur-sm rounded-lg border border-gray-100 shadow-sm z-10 p-0.5">
+                                <button onclick="app.editTicket(${ticket.id})" class="h-6 w-6 rounded-md hover:bg-brand-50 hover:text-brand-600 flex items-center justify-center transition-colors">
+                                    <i class="fa-solid fa-pen text-[10px]"></i>
                                 </button>
                                 ${app.state.currentUser.role === 'admin' ? `
-                                <button onclick="app.deleteTicket(${ticket.id})" class="h-5 w-5 rounded hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-colors">
-                                    <i class="fa-solid fa-trash text-[8px]"></i>
+                                <button onclick="app.deleteTicket(${ticket.id})" class="h-6 w-6 rounded-md hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-colors">
+                                    <i class="fa-solid fa-trash text-[10px]"></i>
                                 </button>` : ''}
                             </div>
                         </div>

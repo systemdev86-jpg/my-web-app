@@ -1426,14 +1426,16 @@ window.app = {
                                 <p class="line-clamp-3">${ticket.description || 'No description'}</p>
                             </div>
 
-                            <!-- Action Buttons (Always Visible) -->
-                            <div class="absolute top-1.5 right-1.5 flex gap-1 bg-white/95 backdrop-blur-sm rounded-lg border border-gray-100 shadow-sm z-10 p-0.5">
-                                <button onclick="event.stopPropagation(); app.editTicket(${ticket.id})" class="h-6 w-6 rounded-md hover:bg-brand-50 hover:text-brand-600 flex items-center justify-center transition-colors">
-                                    <i class="fa-solid fa-pen text-[10px]"></i>
+                            <!-- Action Row (Always Visible) -->
+                            <div class="mt-3 pt-2 border-t border-gray-50 flex justify-end gap-2">
+                                <button onclick="event.stopPropagation(); app.editTicket(${ticket.id})" 
+                                    class="px-2.5 py-1 rounded-lg bg-gray-50 hover:bg-brand-50 text-gray-500 hover:text-brand-600 flex items-center gap-1.5 transition-all text-[10px] font-bold uppercase tracking-wide">
+                                    <i class="fa-solid fa-pen text-[9px]"></i> Edit
                                 </button>
                                 ${app.state.currentUser.role === 'admin' ? `
-                                <button onclick="event.stopPropagation(); app.deleteTicket(${ticket.id})" class="h-6 w-6 rounded-md hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-colors">
-                                    <i class="fa-solid fa-trash text-[10px]"></i>
+                                <button onclick="event.stopPropagation(); app.deleteTicket(${ticket.id})" 
+                                    class="px-2.5 py-1 rounded-lg bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center gap-1.5 transition-all text-[10px] font-bold uppercase tracking-wide">
+                                    <i class="fa-solid fa-trash text-[9px]"></i> Delete
                                 </button>` : ''}
                             </div>
                         </div>

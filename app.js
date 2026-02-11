@@ -1,6 +1,6 @@
 /* app.js - Main Application Logic */
 
-const app = {
+window.app = {
     state: {
         activeSection: 'dashboard',
         isRecording: false,

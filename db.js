@@ -1,6 +1,6 @@
 /* db.js - Database Setup (Dexie) */
 
-const db = new Dexie("CallCenterDB");
+window.db = new Dexie("CallCenterDB");
 
 db.version(3).stores({
   users: "++id, name, pin, role",
@@ -32,35 +32,47 @@ if (typeof firebase !== 'undefined') {
     // Pull updates from Firestore
     firestore.collection(tableName).onSnapshot(snapshot => {
       snapshot.docChanges().forEach(async (change) => {
+        // Ignore local changes that haven't been confirmed by server yet to avoid loops
+        if (change.doc.metadata.hasPendingWrites) return;
+
         const data = change.doc.data();
-        const docId = parseInt(change.doc.id);
+        const docId = isNaN(change.doc.id) ? change.doc.id : parseInt(change.doc.id);
 
         if (change.type === "added" || change.type === "modified") {
           await db[tableName].put({ ...data, id: docId });
+
           // Trigger UI updates if app is initialized
-          if (window.app && window.app.refreshDashboard) {
-            if (tableName === 'tickets') window.app.loadTickets();
-            if (tableName === 'activities') window.app.loadActivities();
-            if (tableName === 'caseNotes') window.app.loadCaseNotes();
+          if (window.app) {
+            if (tableName === 'tickets' && app.loadTickets) app.loadTickets();
+            if (tableName === 'activities' && app.loadActivities) app.loadActivities();
+            if (tableName === 'caseNotes' && app.loadCaseNotes) app.loadCaseNotes();
+            if (tableName === 'calls' && app.loadRecordings) app.loadRecordings();
+            if (app.refreshDashboard) app.refreshDashboard();
           }
         }
         if (change.type === "removed") {
           await db[tableName].delete(docId);
+          if (window.app && app.refreshDashboard) app.refreshDashboard();
         }
       });
     });
 
     // Hook local changes to push to Firestore
-    db[tableName].hook('creating', (id, obj) => {
-      const docId = id ? id.toString() : Date.now().toString() + Math.floor(Math.random() * 1000).toString();
-      firestore.collection(tableName).doc(docId).set(obj);
+    db[tableName].hook('creating', function (id, obj, transaction) {
+      // Use a timeout to ensure Dexie has assigned an ID if it's auto-increment
+      setTimeout(() => {
+        const finalId = id || obj.id;
+        if (finalId) {
+          firestore.collection(tableName).doc(finalId.toString()).set(obj);
+        }
+      }, 100);
     });
 
-    db[tableName].hook('updating', (mods, id) => {
+    db[tableName].hook('updating', function (mods, id, obj, transaction) {
       firestore.collection(tableName).doc(id.toString()).update(mods);
     });
 
-    db[tableName].hook('deleting', (id) => {
+    db[tableName].hook('deleting', function (id, obj, transaction) {
       firestore.collection(tableName).doc(id.toString()).delete();
     });
   };

@@ -1406,13 +1406,13 @@ window.app = {
                 
                 <div class="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-1">
                     ${ticketsInColumn.map(ticket => {
-                const priorityStars = ticket.priority === 'High' ? 3 : (ticket.priority === 'Medium' ? 2 : 1);
-                const statusColor = ticket.status === 'Open' ? '#28a745' : '#6c757d';
+                const priorityClass = ticket.priority === 'High' ? 'pill-high' : (ticket.priority === 'Medium' ? 'pill-medium' : 'pill-low');
                 const isDraggable = ticket.status === 'Open';
 
                 // Get assignee name for avatar tooltip
                 const assigneeName = userMap[ticket.assigneeId] || 'Unassigned';
-                const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(assigneeName)}&background=714B67&color=fff&size=24`;
+                const avatarColor = ticket.priority === 'High' ? 'EF4444' : (ticket.priority === 'Medium' ? 'F59E0B' : '6366F1');
+                const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(assigneeName)}&background=${avatarColor}&color=fff&size=64`;
 
                 return `
                         <div draggable="${isDraggable}" ondragstart="event.dataTransfer.setData('text/plain', '${ticket.id}')"
@@ -1514,6 +1514,7 @@ window.app = {
 
             app.showToast(message, 'success');
             await app.loadTickets();
+            app.refreshDashboard();
         } catch (e) {
             console.error("❌ Error moving ticket", e);
             app.showToast("Failed to move ticket.", "error");
@@ -1683,6 +1684,7 @@ window.app = {
         app.showToast('New ticket created.', 'success');
         app.closeAddTicketModal();
         app.loadTickets();
+        app.refreshDashboard();
     },
 
     closeAddTicketModal: () => {
@@ -1702,6 +1704,7 @@ window.app = {
         if (confirm('Delete this ticket?')) {
             await db.tickets.delete(id);
             app.loadTickets();
+            app.refreshDashboard();
             app.showToast('Ticket deleted.', 'info');
         }
     },
@@ -1777,6 +1780,7 @@ window.app = {
             app.showToast('Ticket updated successfully.', 'success');
             app.closeEditTicketModal();
             app.loadTickets();
+            app.refreshDashboard();
         } catch (e) {
             console.error("Error updating ticket", e);
             app.showToast('Failed to update ticket.', 'error');

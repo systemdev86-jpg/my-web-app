@@ -1321,11 +1321,16 @@ window.app = {
 
     moveTicketToUser: async (ticketId, assigneeId) => {
         try {
+            console.log(`🏷️ Moving ticket #${ticketId} to user:`, assigneeId);
+
             // Ensure ID is handled correctly (Dexie uses numbers, Firestore uses strings)
             const finalAssignee = (assigneeId === 'Unassigned' || !assigneeId) ? null :
                 (isNaN(assigneeId) ? assigneeId : parseInt(assigneeId));
 
+            console.log('Normalized assigneeId:', finalAssignee);
+
             await db.tickets.update(ticketId, { assigneeId: finalAssignee });
+            console.log('✅ Ticket updated in local DB');
 
             let userName = 'Unassigned';
             if (finalAssignee) {
@@ -1337,7 +1342,7 @@ window.app = {
             // Force a local refresh to show the change immediately
             await app.loadTickets();
         } catch (e) {
-            console.error("Error moving ticket", e);
+            console.error("❌ Error moving ticket", e);
             app.showToast("Failed to move ticket.", "error");
         }
     },
@@ -1567,6 +1572,8 @@ window.app = {
             .join('\n');
 
         try {
+            console.log(`📝 Updating ticket #${id} with assigneeId:`, assigneeId);
+
             await db.tickets.update(id, {
                 description,
                 clientName,
@@ -1576,6 +1583,7 @@ window.app = {
                 assigneeId
             });
 
+            console.log('✅ Ticket update complete');
             app.showToast('Ticket updated successfully.', 'success');
             app.closeEditTicketModal();
             app.loadTickets();

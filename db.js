@@ -46,9 +46,20 @@ if (typeof firebase !== 'undefined') {
 
           await db[tableName].put({ ...data, id: docId });
 
+          console.log(`🔄 Sync: ${tableName} ${change.type}`, { id: docId, data });
+
           // Trigger UI updates if app is initialized
-          if (window.app) {
-            if (tableName === 'tickets' && app.loadTickets) app.loadTickets();
+          if (window.app && app.state && app.state.currentUser) {
+            if (tableName === 'tickets') {
+              console.log('🎫 Refreshing tickets view...');
+              if (app.loadTickets) {
+                app.loadTickets();
+              }
+              // Show notification if this is someone else's change
+              if (change.type === 'modified' && app.state.activeSection === 'tickets') {
+                console.log('✨ Ticket updated remotely');
+              }
+            }
             if (tableName === 'activities' && app.loadActivities) app.loadActivities();
             if (tableName === 'caseNotes' && app.loadCaseNotes) app.loadCaseNotes();
             if (tableName === 'calls' && app.loadRecordings) app.loadRecordings();

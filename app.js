@@ -32,7 +32,18 @@ window.app = {
         // --- Data Retention Cleanup (Keep 3 Months) ---
         await app.cleanupOldData();
 
-        // Show Login Modal immediately
+        // --- Persistent Login Check ---
+        const savedUserId = localStorage.getItem('erp_logged_in_user_id');
+        if (savedUserId) {
+            const user = await db.users.get(parseInt(savedUserId));
+            if (user) {
+                app.setSessionUser(user);
+                app.checkMicSupport();
+                return;
+            }
+        }
+
+        // Show Login Modal if no session
         const modal = document.getElementById('login-modal');
         if (modal) {
             modal.classList.remove('hidden');
@@ -41,7 +52,10 @@ window.app = {
             }, 50);
         }
 
-        // Check for mic permissions
+        app.checkMicSupport();
+    },
+
+    checkMicSupport: () => {
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             console.log('Media Devices Supported');
         } else {
@@ -125,6 +139,33 @@ window.app = {
 
     // --- Authentication ---
 
+    setSessionUser: (user) => {
+        app.state.currentUser = user;
+        localStorage.setItem('erp_logged_in_user_id', user.id);
+
+        // Update Sidebar
+        document.getElementById('sidebar-username').innerText = user.name;
+        document.getElementById('sidebar-role').innerText = user.role.toUpperCase();
+        document.getElementById('sidebar-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`;
+
+        // Show Admin specific nav
+        if (user.role === 'admin') {
+            document.getElementById('nav-users').classList.remove('hidden');
+        } else {
+            document.getElementById('nav-users').classList.add('hidden');
+        }
+
+        // Hide Modal
+        const modal = document.getElementById('login-modal');
+        if (modal) {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        // Load initial data
+        app.showSection('dashboard');
+    },
+
     login: async () => {
         const usernameInput = document.getElementById('login-username').value.trim();
         const passwordInput = document.getElementById('login-password').value;
@@ -138,32 +179,9 @@ window.app = {
             const user = users.find(u => u.name.toLowerCase() === usernameInput.toLowerCase() && u.pin === passwordInput);
 
             if (user) {
-                // Success
-                app.state.currentUser = user;
-
-                // Update Sidebar
-                document.getElementById('sidebar-username').innerText = user.name;
-                document.getElementById('sidebar-role').innerText = user.role.toUpperCase();
-                document.getElementById('sidebar-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`;
-
-                // Show Admin specific nav
-                if (user.role === 'admin') {
-                    document.getElementById('nav-users').classList.remove('hidden');
-                } else {
-                    document.getElementById('nav-users').classList.add('hidden');
-                }
-
-                // Hide Modal
-                const modal = document.getElementById('login-modal');
-                modal.classList.add('opacity-0', 'pointer-events-none');
-                setTimeout(() => modal.classList.add('hidden'), 300);
-
-                // Load initial data
-                app.showSection('dashboard');
-
-                // Clear errors
+                // Success - use helper for consistency
+                app.setSessionUser(user);
                 errorMsg.classList.add('hidden');
-
             } else {
                 errorMsg.innerText = "Invalid Username or Password";
                 errorMsg.classList.remove('hidden');
@@ -177,6 +195,7 @@ window.app = {
 
     logout: async () => {
         app.state.currentUser = null;
+        localStorage.removeItem('erp_logged_in_user_id');
         document.getElementById('login-username').value = '';
         document.getElementById('login-password').value = '';
 

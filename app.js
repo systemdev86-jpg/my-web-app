@@ -344,11 +344,17 @@ window.app = {
             let openTickets = 0;
             let recentCalls = [];
 
-            // Stats counts - Filter for standard users
-            // Stats counts - Global visibility
-            callsCount = await db.calls.where('timestamp').aboveOrEqual(today.getTime()).count();
-            pendingTasks = await db.activities.where('status').equals('pending').count();
-            openTickets = await db.tickets.where('status').equals('Open').count();
+            // Stats counts - Role-based visibility
+            if (app.state.currentUser.role === 'admin') {
+                callsCount = await db.calls.where('timestamp').aboveOrEqual(today.getTime()).count();
+                pendingTasks = await db.activities.where('status').equals('pending').count();
+                openTickets = await db.tickets.where('status').equals('Open').count();
+            } else {
+                callsCount = await db.calls.where('timestamp').aboveOrEqual(today.getTime()).and(c => c.userId === app.state.currentUser.id).count();
+                pendingTasks = await db.activities.where('userId').equals(app.state.currentUser.id).and(a => a.status === 'pending').count();
+                // Show open tickets assigned to them OR unassigned
+                openTickets = await db.tickets.where('status').equals('Open').and(t => t.assigneeId === app.state.currentUser.id || t.assigneeId === null || t.assigneeId === 'Unassigned').count();
+            }
 
             document.getElementById('dash-calls-count').innerText = callsCount;
             document.getElementById('dash-tasks-count').innerText = pendingTasks;
@@ -358,11 +364,23 @@ window.app = {
             app.renderCharts();
 
             // Load recent recordings
-            // Load recent recordings (Global)
-            if (searchTerm) {
-                recentCalls = await db.calls.filter(c => c.clientName.toLowerCase().includes(searchTerm)).reverse().toArray();
+            // Load recent recordings (Role-based)
+            if (app.state.currentUser.role === 'admin') {
+                if (searchTerm) {
+                    recentCalls = await db.calls.filter(c => c.clientName.toLowerCase().includes(searchTerm)).reverse().toArray();
+                } else {
+                    recentCalls = await db.calls.orderBy('timestamp').reverse().limit(5).toArray();
+                }
             } else {
-                recentCalls = await db.calls.orderBy('timestamp').reverse().limit(5).toArray();
+                // Standard user only sees their own recordings
+                if (searchTerm) {
+                    recentCalls = await db.calls.where('userId').equals(app.state.currentUser.id).and(c => c.clientName.toLowerCase().includes(searchTerm)).toArray();
+                    recentCalls.sort((a, b) => b.timestamp - a.timestamp);
+                } else {
+                    recentCalls = await db.calls.where('userId').equals(app.state.currentUser.id).toArray();
+                    recentCalls.sort((a, b) => b.timestamp - a.timestamp);
+                    recentCalls = recentCalls.slice(0, 5);
+                }
             }
 
             // Need to fetch user names
@@ -881,8 +899,13 @@ window.app = {
         const list = document.getElementById('recordings-list');
         list.innerHTML = '';
 
-        // Global visibility for recordings
-        const calls = await db.calls.orderBy('timestamp').reverse().toArray();
+        // Visibility for recordings
+        let calls = [];
+        if (app.state.currentUser.role === 'admin') {
+            calls = await db.calls.orderBy('timestamp').reverse().toArray();
+        } else {
+            calls = await db.calls.where('userId').equals(app.state.currentUser.id).reverse().toArray();
+        }
 
         if (searchTerm) {
             calls = calls.filter(c => c.clientName && c.clientName.toLowerCase().includes(searchTerm));
@@ -1102,8 +1125,13 @@ window.app = {
 
         const tasksCountBadge = document.getElementById('task-count-badge');
 
-        // Global visibility for tasks
-        const tasks = await db.activities.orderBy('timestamp').reverse().toArray();
+        // Visibility for tasks
+        let tasks = [];
+        if (app.state.currentUser.role === 'admin') {
+            tasks = await db.activities.orderBy('timestamp').reverse().toArray();
+        } else {
+            tasks = await db.activities.where('userId').equals(app.state.currentUser.id).reverse().toArray();
+        }
 
         if (searchTerm) {
             tasks = tasks.filter(t => t.title && t.title.toLowerCase().includes(searchTerm));
@@ -1236,6 +1264,18 @@ window.app = {
         // Global visibility for tickets
         let tickets = await db.tickets.orderBy('createdAt').reverse().toArray();
 
+        // Strict visibility for standard users
+        if (app.state.currentUser.role !== 'admin') {
+            tickets = tickets.filter(t =>
+                // Show all Unassigned tickets that are OPEN
+                (t.status === 'Open' && (t.assigneeId === null || t.assigneeId === 'Unassigned')) ||
+                // Show tickets ASSIGNED to current user
+                (t.assigneeId === app.state.currentUser.id) ||
+                // Show tickets CREATED by current user
+                (t.userId === app.state.currentUser.id)
+            );
+        }
+
         if (searchTerm) {
             tickets = tickets.filter(t =>
                 (t.description && t.description.toLowerCase().includes(searchTerm)) ||
@@ -1282,7 +1322,15 @@ window.app = {
         });
 
         // Column keys: 'Unassigned' first, 'Completed' second, then users
-        const columnKeys = ['Unassigned', 'Completed', ...users.map(u => u.id)];
+        let columnKeys = [];
+
+        if (app.state.currentUser.role === 'admin') {
+            // Admin sees everyone
+            columnKeys = ['Unassigned', 'Completed', ...users.map(u => u.id)];
+        } else {
+            // Standard users see Unassigned, Completed, and THEMSELVES only
+            columnKeys = ['Unassigned', 'Completed', app.state.currentUser.id];
+        }
 
         columnKeys.forEach(key => {
             const isCompleted = key === 'Completed';
@@ -1413,6 +1461,14 @@ window.app = {
         if (!app.state.currentUser) return;
 
         let tickets = await db.tickets.orderBy('createdAt').reverse().toArray();
+        if (app.state.currentUser.role !== 'admin') {
+            // Apply same filtering as loadTickets for standard users
+            tickets = tickets.filter(t =>
+                (t.assigneeId === app.state.currentUser.id) ||
+                (t.userId === app.state.currentUser.id) ||
+                (t.status === 'Open' && (t.assigneeId === null || t.assigneeId === 'Unassigned'))
+            );
+        }
 
         if (tickets.length === 0) {
             app.showToast('No tickets to export.', 'info');
@@ -1666,8 +1722,13 @@ window.app = {
         const list = document.getElementById('casenotes-list');
         list.innerHTML = '';
 
-        // Global visibility for case notes
-        const notes = await db.caseNotes.orderBy('timestamp').reverse().toArray();
+        // Visibility for case notes
+        let notes = [];
+        if (app.state.currentUser.role === 'admin') {
+            notes = await db.caseNotes.orderBy('timestamp').reverse().toArray();
+        } else {
+            notes = await db.caseNotes.where('userId').equals(app.state.currentUser.id).reverse().toArray();
+        }
 
         if (searchTerm) {
             notes = notes.filter(n =>

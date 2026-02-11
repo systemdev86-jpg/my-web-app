@@ -1285,6 +1285,7 @@ window.app = {
                 const urgencyBadge = ticket.priority === 'High' ? 'text-red-600 bg-red-100' : (ticket.priority === 'Medium' ? 'text-orange-600 bg-orange-100' : 'text-blue-600 bg-blue-100');
                 const cardBg = ticket.priority === 'High' ? 'bg-red-50/60 border-red-100' : (ticket.priority === 'Medium' ? 'bg-amber-50/60 border-amber-100' : 'bg-blue-50/60 border-blue-100');
                 const accentColor = ticket.priority === 'High' ? 'bg-red-500' : (ticket.priority === 'Medium' ? 'bg-amber-500' : 'bg-blue-500');
+                const statusBadge = ticket.status === 'Open' ? 'text-emerald-600 bg-emerald-100' : 'text-gray-600 bg-gray-200';
 
                 return `
                         <div draggable="true" ondragstart="event.dataTransfer.setData('text/plain', '${ticket.id}')"
@@ -1294,8 +1295,9 @@ window.app = {
                                 <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Client: ${ticket.clientName || 'N/A'}</span>
                                 <span class="text-[10px] text-gray-400">#${ticket.id}</span>
                             </div>
-                            <div class="flex items-center gap-2 mb-3">
+                            <div class="flex items-center gap-2 mb-3 flex-wrap">
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold ${urgencyBadge}">${ticket.priority} Priority</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusBadge}">${ticket.status}</span>
                                 <span class="ml-auto text-[10px] text-gray-400">${ticket.dateString || ''}</span>
                             </div>
                             <p class="text-[13px] text-gray-600 line-clamp-3 mb-4 leading-relaxed font-medium">

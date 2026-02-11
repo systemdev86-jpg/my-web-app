@@ -1398,7 +1398,8 @@ window.app = {
 
                 return `
                         <div draggable="${isDraggable}" ondragstart="event.dataTransfer.setData('text/plain', '${ticket.id}')"
-                             class="${cardBg} p-3 rounded-xl shadow-sm border hover:shadow-md transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'} group relative">
+                             onclick="app.editTicket(${ticket.id})"
+                             class="${cardBg} p-3 rounded-xl shadow-sm border hover:shadow-md transition-all ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} group relative">
                             
                             <!-- Header: Client & ID -->
                             <div class="flex justify-between items-center mb-1.5">
@@ -1421,11 +1422,11 @@ window.app = {
 
                             <!-- Action Buttons (Always Visible) -->
                             <div class="absolute top-1.5 right-1.5 flex gap-1 bg-white/95 backdrop-blur-sm rounded-lg border border-gray-100 shadow-sm z-10 p-0.5">
-                                <button onclick="app.editTicket(${ticket.id})" class="h-6 w-6 rounded-md hover:bg-brand-50 hover:text-brand-600 flex items-center justify-center transition-colors">
+                                <button onclick="event.stopPropagation(); app.editTicket(${ticket.id})" class="h-6 w-6 rounded-md hover:bg-brand-50 hover:text-brand-600 flex items-center justify-center transition-colors">
                                     <i class="fa-solid fa-pen text-[10px]"></i>
                                 </button>
                                 ${app.state.currentUser.role === 'admin' ? `
-                                <button onclick="app.deleteTicket(${ticket.id})" class="h-6 w-6 rounded-md hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-colors">
+                                <button onclick="event.stopPropagation(); app.deleteTicket(${ticket.id})" class="h-6 w-6 rounded-md hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-colors">
                                     <i class="fa-solid fa-trash text-[10px]"></i>
                                 </button>` : ''}
                             </div>

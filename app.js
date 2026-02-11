@@ -2138,6 +2138,14 @@ window.app = {
         };
 
         safeContainer.appendChild(toast);
+
+        // Auto-remove after 2 seconds
+        setTimeout(() => {
+            if (toast && toast.parentElement) {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 2000);
     }
 };
 

@@ -849,10 +849,16 @@ window.app = {
                             <p class="text-xs font-medium text-gray-400">ID: #${dept.id}</p>
                         </div>
                     </div>
-                    <button onclick="app.deleteDepartment(${dept.id})" 
-                        class="h-10 w-10 rounded-xl flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
+                    <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                        <button onclick="app.showEditDepartmentModal(${dept.id})" 
+                            class="h-10 w-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button onclick="app.deleteDepartment(${dept.id})" 
+                            class="h-10 w-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
                 `;
                 list.appendChild(div);
             });
@@ -884,6 +890,43 @@ window.app = {
             await app.loadDepartments();
             app.showToast('Department deleted', 'info');
         }
+    },
+
+    showEditDepartmentModal: async (id) => {
+        const dept = await db.departments.get(id);
+        if (!dept) return;
+
+        document.getElementById('edit-department-id').value = dept.id;
+        document.getElementById('edit-department-name').value = dept.name || '';
+
+        const modal = document.getElementById('edit-department-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            document.getElementById('edit-department-modal-content').classList.remove('scale-95');
+        }, 10);
+    },
+
+    closeEditDepartmentModal: () => {
+        const modal = document.getElementById('edit-department-modal');
+        modal.classList.add('opacity-0');
+        document.getElementById('edit-department-modal-content').classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    },
+
+    updateDepartment: async () => {
+        const id = parseInt(document.getElementById('edit-department-id').value);
+        const name = document.getElementById('edit-department-name').value.trim();
+
+        if (!name) {
+            app.showToast('Please enter a department name.', 'error');
+            return;
+        }
+
+        await db.departments.update(id, { name });
+        app.showToast('Department updated successfully', 'success');
+        app.closeEditDepartmentModal();
+        await app.loadDepartments();
     },
 
     updateDepartmentFilters: (depts) => {

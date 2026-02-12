@@ -870,10 +870,22 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <label
-                        class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Description</label>
-                    <textarea id="edit-ticket-description" rows="4" placeholder="Describe the issue..."
-                        class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium"></textarea>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Checklist &
+                        Progress</label>
+                    <div id="edit-ticket-checklist-container"
+                        class="space-y-3 mb-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 max-h-60 overflow-y-auto custom-scrollbar">
+                        <!-- Checklist items will be injected here -->
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="edit-ticket-new-point"
+                            placeholder="Add a task or update (e.g. Call scheduled)"
+                            onkeydown="if(event.key === 'Enter') { event.preventDefault(); app.addChecklistItem('edit'); }"
+                            class="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium bg-white">
+                        <button onclick="app.addChecklistItem('edit')"
+                            class="px-5 py-3 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all font-bold shadow-sm active:scale-95">
+                            <i class="fa-solid fa-plus mr-1"></i> Add
+                        </button>
+                    </div>
                 </div>
 
                 <div>
@@ -1087,10 +1099,23 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <label
-                        class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Description</label>
-                    <textarea id="add-ticket-description" rows="4" placeholder="Enter ticket details here..."
-                        class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium"></textarea>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Ticket
+                        Points (Task List)</label>
+                    <div id="add-ticket-checklist-container"
+                        class="space-y-3 mb-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 max-h-40 overflow-y-auto custom-scrollbar">
+                        <!-- Initial points will be here -->
+                        <p class="text-[11px] text-slate-400 italic text-center py-2">Add points using the box below</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="add-ticket-new-point"
+                            placeholder="What needs to be done? (e.g. Server restart)"
+                            onkeydown="if(event.key === 'Enter') { event.preventDefault(); app.addChecklistItem('add'); }"
+                            class="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium bg-white">
+                        <button onclick="app.addChecklistItem('add')"
+                            class="px-5 py-3 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all font-bold shadow-sm active:scale-95">
+                            <i class="fa-solid fa-plus mr-1"></i> Add
+                        </button>
+                    </div>
                 </div>
 
                 <div>

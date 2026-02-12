@@ -12,7 +12,8 @@ window.app = {
         currentDuration: 0,
         audioUrl: null,
         currentUser: null, // Logged in user info
-        currentPlayingCallId: null
+        currentPlayingCallId: null,
+        tempChecklist: [] // For add/edit ticket
     },
 
     init: async () => {
@@ -1678,9 +1679,41 @@ window.app = {
                                 ${ticket.clientName || 'Unnamed Client'}
                             </h5>
 
-                            <p class="text-xs text-slate-500 line-clamp-2 mb-4">
-                                ${ticket.description || 'No description.'}
-                            </p>
+                            <div class="mb-4">
+                                ${(() => {
+                        try {
+                            const items = JSON.parse(ticket.description);
+                            if (!Array.isArray(items)) throw new Error('Not array');
+
+                            const total = items.length;
+                            const completed = items.filter(i => i.completed).length;
+                            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+                            const barColor = percent === 100 ? 'bg-emerald-500' : (percent > 50 ? 'bg-indigo-500' : (percent > 0 ? 'bg-amber-500' : 'bg-slate-200'));
+
+                            return `
+                                            <div class="flex justify-between items-center mb-1.5">
+                                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${completed}/${total} Tasks</span>
+                                                <span class="text-[10px] font-bold ${percent === 100 ? 'text-emerald-500' : 'text-slate-500'}">${percent}%</span>
+                                            </div>
+                                            <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner border border-slate-50">
+                                                <div class="h-full ${barColor} transition-all duration-500 ease-out" style="width: ${percent}%"></div>
+                                            </div>
+                                            <div class="mt-2 space-y-1">
+                                                ${items.slice(0, 2).map(i => `
+                                                    <div class="flex items-center gap-1.5 text-[10px] font-medium ${i.completed ? 'text-slate-400 line-through' : 'text-slate-600'}">
+                                                        <i class="fa-solid ${i.completed ? 'fa-circle-check text-emerald-500' : 'fa-circle text-slate-200'} text-[8px]"></i>
+                                                        <span class="truncate">${i.text}</span>
+                                                    </div>
+                                                `).join('')}
+                                                ${items.length > 2 ? `<p class="text-[9px] text-slate-300 font-bold ml-3">+ ${items.length - 2} more tasks</p>` : ''}
+                                            </div>
+                                        `;
+                        } catch (e) {
+                            // Fallback for legacy text descriptions
+                            return `<p class="text-xs text-slate-500 line-clamp-2">${ticket.description || 'No description.'}</p>`;
+                        }
+                    })()}
+                            </div>
 
                             <div class="flex items-center justify-between pt-3 border-t border-slate-50">
                                 <div class="flex items-center gap-2">
@@ -1778,9 +1811,14 @@ window.app = {
         // CSV Rows
         const rows = tickets.map(t => {
             const assigneeName = userMap[t.assigneeId] || 'Unassigned';
-            const relatedCall = t.callId ? `Call #${t.callId} ` : 'Manual Entry';
-            // Keep original description with bullet points and newlines
-            const cleanDesc = t.description;
+            // Handle JSON checklist for cleaner export
+            let cleanDesc = t.description;
+            try {
+                const items = JSON.parse(t.description);
+                if (Array.isArray(items)) {
+                    cleanDesc = items.map(i => `${i.completed ? '[x]' : '[ ]'} ${i.text}`).join(' | ');
+                }
+            } catch (e) { }
 
             return [
                 t.id,
@@ -1844,7 +1882,8 @@ window.app = {
 
         // Reset and show modal
         document.getElementById('add-ticket-client').value = '';
-        document.getElementById('add-ticket-description').value = '';
+        app.state.tempChecklist = [];
+        app.renderChecklist('add-ticket-checklist-container', 'add');
         document.getElementById('add-ticket-date').value = new Date().toISOString().split('T')[0];
         document.getElementById('add-ticket-priority').value = 'Medium';
 
@@ -1886,22 +1925,16 @@ window.app = {
 
     createTicket: async () => {
         const clientName = document.getElementById('add-ticket-client').value.trim();
-        const descriptionRaw = document.getElementById('add-ticket-description').value.trim();
         const assigneeId = parseInt(document.getElementById('add-ticket-assignee').value) || null;
         const priority = document.getElementById('add-ticket-priority').value;
         const dateString = document.getElementById('add-ticket-date').value;
 
-        if (!descriptionRaw) {
-            app.showToast('Description is required.', 'error');
+        if (app.state.tempChecklist.length === 0) {
+            app.showToast('Please add at least one point/task to the ticket.', 'error');
             return;
         }
 
-        const description = descriptionRaw.split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0)
-            .map(line => line.startsWith('•') ? line : `• ${line}`)
-            .join('\n');
-
+        const description = JSON.stringify(app.state.tempChecklist);
         const departmentId = parseInt(document.getElementById('add-ticket-department').value) || null;
 
         await db.tickets.add({
@@ -1951,8 +1984,23 @@ window.app = {
 
         document.getElementById('edit-ticket-id').value = ticket.id;
         document.getElementById('edit-ticket-client').value = ticket.clientName || '';
-        document.getElementById('edit-ticket-description').value = ticket.description;
-        document.getElementById('edit-ticket-priority').value = ticket.priority;
+        document.getElementById('edit-ticket-duration').value = ticket.timeDuration || '';
+
+        // Handle checklist parsing
+        try {
+            const items = JSON.parse(ticket.description);
+            app.state.tempChecklist = Array.isArray(items) ? items : [];
+        } catch (e) {
+            // Convert legacy bullet text to checklist
+            const lines = (ticket.description || '').split('\n').filter(l => l.trim());
+            app.state.tempChecklist = lines.map(l => ({
+                text: l.replace(/^[•\-\s]+/, '').trim(),
+                completed: false
+            }));
+        }
+        app.renderChecklist('edit-ticket-checklist-container', 'edit');
+
+        document.getElementById('edit-ticket-assignee').value = ticket.assigneeId || '';
         document.getElementById('edit-ticket-status').value = ticket.status;
         document.getElementById('edit-ticket-date').value = ticket.dateString || "";
         document.getElementById('edit-ticket-duration').value = ticket.timeDuration || "";
@@ -1986,23 +2034,18 @@ window.app = {
     updateTicket: async () => {
         const id = parseInt(document.getElementById('edit-ticket-id').value);
         const clientName = document.getElementById('edit-ticket-client').value.trim();
-        const rawDescription = document.getElementById('edit-ticket-description').value.trim();
         const assigneeId = parseInt(document.getElementById('edit-ticket-assignee').value) || null;
         const priority = document.getElementById('edit-ticket-priority').value;
         const status = document.getElementById('edit-ticket-status').value;
         const dateString = document.getElementById('edit-ticket-date').value;
         const timeDuration = parseFloat(document.getElementById('edit-ticket-duration').value) || null;
 
-        if (!rawDescription) {
-            app.showToast('Description is required.', 'error');
+        if (app.state.tempChecklist.length === 0) {
+            app.showToast('Checkpoint list cannot be empty.', 'error');
             return;
         }
 
-        const description = rawDescription.split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0)
-            .map(line => line.startsWith('•') ? line : `• ${line}`)
-            .join('\n');
+        const description = JSON.stringify(app.state.tempChecklist);
 
         try {
             console.log(`📝 Updating ticket #${id} with assigneeId:`, assigneeId);
@@ -2027,6 +2070,51 @@ window.app = {
             console.error("Error updating ticket", e);
             app.showToast('Failed to update ticket.', 'error');
         }
+    },
+
+    addChecklistItem: (type) => {
+        const input = document.getElementById(`${type}-ticket-new-point`);
+        const text = input.value.trim();
+        if (!text) return;
+
+        app.state.tempChecklist.push({ text, completed: false });
+        input.value = '';
+        app.renderChecklist(`${type}-ticket-checklist-container`, type);
+    },
+
+    toggleChecklistItem: (index, type) => {
+        app.state.tempChecklist[index].completed = !app.state.tempChecklist[index].completed;
+        app.renderChecklist(`${type}-ticket-checklist-container`, type);
+    },
+
+    removeChecklistItem: (index, type) => {
+        app.state.tempChecklist.splice(index, 1);
+        app.renderChecklist(`${type}-ticket-checklist-container`, type);
+    },
+
+    renderChecklist: (containerId, type) => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        if (app.state.tempChecklist.length === 0) {
+            container.innerHTML = '<p class="text-[11px] text-slate-400 italic text-center py-4">No points added yet. Use the box below to add tasks.</p>';
+            return;
+        }
+
+        container.innerHTML = app.state.tempChecklist.map((item, index) => `
+        <div class="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm group hover:border-indigo-100 transition-all">
+            <input type="checkbox" ${item.completed ? 'checked' : ''} 
+                onchange="app.toggleChecklistItem(${index}, '${type}')"
+                class="h-4.5 w-4.5 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+            <span class="flex-1 text-[13px] font-medium ${item.completed ? 'text-slate-400 line-through' : 'text-slate-700'}">
+                ${item.text}
+            </span>
+            <button onclick="app.removeChecklistItem(${index}, '${type}')" 
+                class="p-2 text-slate-300 hover:text-red-500 transition-colors">
+                <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+        </div>
+    `).join('');
     },
 
     closeEditTicketModal: () => {

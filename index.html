@@ -76,39 +76,39 @@
             <a href="#" onclick="app.showSection('dashboard')" id="nav-dashboard"
                 class="nav-item active flex items-center gap-4 px-4 py-3.5 rounded-xl text-brand-600 bg-brand-50/80 font-semibold transition-all group">
                 <i class="fa-solid fa-chart-pie text-xl w-6 text-center group-hover:scale-110 transition-transform"></i>
-                <span class="hidden lg:block">Dashboard</span>
+                <span class="hidden lg:block text-[15px] font-bold">Dashboard</span>
             </a>
             <a href="#" onclick="app.showSection('calls')" id="nav-calls"
                 class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-brand-600 transition-all group">
                 <i class="fa-solid fa-phone text-xl w-6 text-center group-hover:scale-110 transition-transform"></i>
-                <span class="hidden lg:block">Active Call</span>
+                <span class="hidden lg:block text-[15px] font-bold">Active Call</span>
             </a>
             <a href="#" onclick="app.showSection('activities')" id="nav-activities"
                 class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-brand-600 transition-all group">
                 <i
                     class="fa-solid fa-list-check text-xl w-6 text-center group-hover:scale-110 transition-transform"></i>
-                <span class="hidden lg:block">My Tasks</span>
+                <span class="hidden lg:block text-[15px] font-bold">My Tasks</span>
             </a>
             <a href="#" onclick="app.showSection('tickets')" id="nav-tickets"
                 class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-brand-600 transition-all group">
                 <i class="fa-solid fa-ticket text-xl w-6 text-center group-hover:scale-110 transition-transform"></i>
-                <span class="hidden lg:block">Tickets</span>
+                <span class="hidden lg:block text-[15px] font-bold">Tickets</span>
             </a>
             <a href="#" onclick="app.showSection('casenotes')" id="nav-casenotes"
                 class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-brand-600 transition-all group">
                 <i class="fa-solid fa-book-open text-xl w-6 text-center group-hover:scale-110 transition-transform"></i>
-                <span class="hidden lg:block">Daily Case Notes</span>
+                <span class="hidden lg:block text-[15px] font-bold">Daily Case Notes</span>
             </a>
             <a href="#" onclick="app.showSection('departments')" id="nav-departments"
                 class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-brand-600 transition-all group">
                 <i
                     class="fa-solid fa-building-user text-xl w-6 text-center group-hover:scale-110 transition-transform"></i>
-                <span class="hidden lg:block">Departments</span>
+                <span class="hidden lg:block text-[15px] font-bold">Departments</span>
             </a>
             <a href="#" onclick="app.showSection('users')" id="nav-users"
                 class="nav-item hidden flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-brand-600 transition-all group">
                 <i class="fa-solid fa-users text-xl w-6 text-center group-hover:scale-110 transition-transform"></i>
-                <span class="hidden lg:block">Users</span>
+                <span class="hidden lg:block text-[15px] font-bold">Users</span>
             </a>
         </nav>
 
@@ -120,13 +120,13 @@
                     <img src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" id="sidebar-avatar"
                         class="h-10 w-10 rounded-xl shadow-sm" alt="Profile">
                     <div class="hidden lg:block overflow-hidden">
-                        <p class="text-sm font-bold text-slate-800 truncate" id="sidebar-username">User</p>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight" id="sidebar-role">
+                        <p class="text-[15px] font-bold text-slate-800 truncate" id="sidebar-username">User</p>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-tight" id="sidebar-role">
                             Online</p>
                     </div>
                 </div>
                 <button onclick="app.logout()"
-                    class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all font-bold text-[10px] uppercase tracking-wider"
+                    class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all font-bold text-[11px] uppercase tracking-wider"
                     title="Logout">
                     <span>Logout</span>
                     <i class="fa-solid fa-right-from-bracket"></i>
@@ -427,7 +427,7 @@
                 <div class="px-8 py-5 flex justify-between items-center bg-white border-b border-slate-200">
                     <div>
                         <div class="flex items-center gap-3">
-                            <h3 class="text-xl font-bold text-slate-800">Support Tickets</h3>
+                            <h3 class="text-2xl font-bold text-slate-800">Support Tickets</h3>
                             <span
                                 class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 uppercase">Kanban
                                 Board</span>
@@ -436,7 +436,7 @@
                     </div>
                     <div class="flex gap-3 mb-1">
                         <select id="ticket-filter-department" onchange="app.loadTickets()"
-                            class="px-4 py-2.5 rounded-2xl bg-white/80 border-transparent focus:border-indigo-500 transition-all font-bold text-sm shadow-sm outline-none">
+                            class="px-4 py-2.5 rounded-2xl bg-white/80 border-transparent focus:border-indigo-500 transition-all font-bold text-[15px] shadow-sm outline-none">
                             <option value="">All Departments</option>
                         </select>
                         <button onclick="app.deleteClosedTickets()" id="btn-delete-closed"
@@ -474,7 +474,7 @@
                 <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-10">
                         <div>
-                            <h3 class="text-xl font-bold text-slate-800">Department Management</h3>
+                            <h3 class="text-2xl font-bold text-slate-800">Department Management</h3>
                             <p class="text-gray-500 font-medium">Create and manage internal departments</p>
                         </div>
                         <span id="department-count-badge"
@@ -516,7 +516,7 @@
                 <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-10">
                         <div>
-                            <h3 class="text-xl font-bold text-slate-800">User Management</h3>
+                            <h3 class="text-2xl font-bold text-slate-800">User Management</h3>
                             <p class="text-gray-500 font-medium">Create and manage system users and permissions</p>
                         </div>
                         <button onclick="app.showAddUserModal()"
@@ -537,7 +537,7 @@
                 <div class="glass p-8 rounded-3xl shadow-lg border border-white/60">
                     <div class="flex justify-between items-center mb-6">
                         <div>
-                            <h3 class="text-xl font-bold text-gray-800">Daily Case Notes</h3>
+                            <h3 class="text-2xl font-bold text-gray-800">Daily Case Notes</h3>
                             <p class="text-sm text-gray-500">Track your daily work updates</p>
                         </div>
                         <button onclick="app.showAddCaseNoteModal()"

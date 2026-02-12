@@ -1667,15 +1667,15 @@ window.app = {
                              class="attractive-card p-4 transition-all group relative cursor-pointer active:scale-95 bg-white border border-slate-200">
                             
                             <div class="flex justify-between items-start mb-3">
-                                <span class="pill-badge ${priorityClass} text-[10px]">
+                                <span class="pill-badge ${priorityClass} text-[11px] px-2.5 py-1">
                                     ${ticket.priority}
                                 </span>
-                                <span class="text-[10px] font-medium text-slate-300">
+                                <span class="text-[11px] font-bold text-slate-300">
                                     #${ticket.id}
                                 </span>
                             </div>
 
-                            <h5 class="text-sm font-bold text-slate-800 leading-tight mb-1 group-hover:text-indigo-600 transition-colors">
+                            <h5 class="text-[15px] font-bold text-slate-800 leading-tight mb-1.5 group-hover:text-indigo-600 transition-colors">
                                 ${ticket.clientName || 'Unnamed Client'}
                             </h5>
 
@@ -1692,20 +1692,20 @@ window.app = {
 
                             return `
                                             <div class="flex justify-between items-center mb-1.5">
-                                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${completed}/${total} Tasks</span>
-                                                <span class="text-[10px] font-bold ${percent === 100 ? 'text-emerald-500' : 'text-slate-500'}">${percent}%</span>
+                                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-tight">${completed}/${total} Tasks</span>
+                                                <span class="text-[11px] font-black ${percent === 100 ? 'text-emerald-500' : 'text-slate-500'}">${percent}%</span>
                                             </div>
                                             <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner border border-slate-50">
                                                 <div class="h-full ${barColor} transition-all duration-500 ease-out" style="width: ${percent}%"></div>
                                             </div>
-                                            <div class="mt-2 space-y-1">
+                                            <div class="mt-2.5 space-y-1.5">
                                                 ${items.slice(0, 2).map(i => `
-                                                    <div class="flex items-center gap-1.5 text-[10px] font-medium ${i.completed ? 'text-slate-400 line-through' : 'text-slate-600'}">
-                                                        <i class="fa-solid ${i.completed ? 'fa-circle-check text-emerald-500' : 'fa-circle text-slate-200'} text-[8px]"></i>
+                                                    <div class="flex items-center gap-2 text-[11.5px] font-medium ${i.completed ? 'text-slate-400 line-through' : 'text-slate-700'}">
+                                                        <i class="fa-solid ${i.completed ? 'fa-circle-check text-emerald-500/80' : 'fa-circle text-slate-200'} text-[9px]"></i>
                                                         <span class="truncate">${i.text}</span>
                                                     </div>
                                                 `).join('')}
-                                                ${items.length > 2 ? `<p class="text-[9px] text-slate-300 font-bold ml-3">+ ${items.length - 2} more tasks</p>` : ''}
+                                                ${items.length > 2 ? `<p class="text-[10px] text-slate-400 font-bold ml-4 tracking-tight">+ ${items.length - 2} more tasks...</p>` : ''}
                                             </div>
                                         `;
                         } catch (e) {
@@ -1717,8 +1717,8 @@ window.app = {
 
                             <div class="flex items-center justify-between pt-3 border-t border-slate-50">
                                 <div class="flex items-center gap-2">
-                                    <img src="${avatarUrl}" class="h-5 w-5 rounded-full ring-2 ring-white shadow-sm" title="${assigneeName}">
-                                    <span class="text-[10px] font-medium text-slate-400">${assigneeName}</span>
+                                    <img src="${avatarUrl}" class="h-6 w-6 rounded-full ring-2 ring-white shadow-sm" title="${assigneeName}">
+                                    <span class="text-[11.5px] font-bold text-slate-400/80">${assigneeName}</span>
                                 </div>
                                 <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                      <button onclick="event.stopPropagation(); app.editTicket(${ticket.id})" 

@@ -28,7 +28,8 @@ window.app = {
                     name: "Ravish",
                     pin: "123",
                     role: "admin",
-                    permissions: "dashboard,calls,activities,tickets,casenotes,departments,users"
+                    permissions: "dashboard,calls,activities,tickets,casenotes,departments,users",
+                    allowedDepIds: ""
                 });
             }
         } catch (e) { console.warn("Seed check failed", e); }
@@ -40,6 +41,7 @@ window.app = {
         const savedUserName = localStorage.getItem('erp_logged_in_username');
         const savedUserRole = localStorage.getItem('erp_logged_in_user_role');
         const savedUserPermissions = localStorage.getItem('erp_logged_in_user_permissions');
+        const savedUserAllowedDepIds = localStorage.getItem('erp_logged_in_user_allowed_dep_ids');
 
         if (savedUserId && savedUserName) {
             console.log("Optimistic login for:", savedUserName);
@@ -48,7 +50,8 @@ window.app = {
                 id: isNaN(savedUserId) ? savedUserId : parseInt(savedUserId),
                 name: savedUserName,
                 role: savedUserRole || 'agent',
-                permissions: savedUserPermissions || ''
+                permissions: savedUserPermissions || '',
+                allowedDepIds: savedUserAllowedDepIds || ''
             };
 
             app.updateUIForUser(app.state.currentUser);
@@ -168,6 +171,7 @@ window.app = {
         localStorage.setItem('erp_logged_in_username', user.name);
         localStorage.setItem('erp_logged_in_user_role', user.role);
         localStorage.setItem('erp_logged_in_user_permissions', user.permissions || '');
+        localStorage.setItem('erp_logged_in_user_allowed_dep_ids', user.allowedDepIds || '');
 
         app.updateUIForUser(user);
         app.showSection('dashboard');
@@ -649,8 +653,12 @@ window.app = {
     },
 
     // --- User Management (Admin) ---
-    showAddUserModal: () => {
+    showAddUserModal: async () => {
         const modal = document.getElementById('add-user-modal');
+
+        // Populate departments
+        await app.renderDepartmentAccessCheckboxes('new-user-departments', 'dept-access');
+
         modal.classList.remove('hidden');
         void modal.offsetWidth;
         modal.classList.remove('opacity-0');
@@ -675,6 +683,10 @@ window.app = {
         const permissionCheckboxes = document.querySelectorAll('input[name="permission"]:checked');
         const permissions = Array.from(permissionCheckboxes).map(cb => cb.value).join(',');
 
+        // Get selected departments
+        const deptCheckboxes = document.querySelectorAll('input[name="dept-access"]:checked');
+        const allowedDepIds = Array.from(deptCheckboxes).map(cb => cb.value).join(',');
+
         if (!name || !pin) {
             app.showToast('Name and PIN are required.', 'error');
             return;
@@ -686,7 +698,7 @@ window.app = {
             return;
         }
 
-        await db.users.add({ name, pin, role, permissions });
+        await db.users.add({ name, pin, role, permissions, allowedDepIds });
         app.showToast('User created successfully.', 'success');
         app.closeAddUserModal();
         app.loadUsersList();
@@ -767,11 +779,14 @@ window.app = {
         document.getElementById('edit-user-name').value = user.name;
         document.getElementById('edit-user-pin').value = user.pin;
 
-        // Reset and Set checkboxes
+        // Reset and Set permissions
         const permissions = user.permissions ? user.permissions.split(',') : [];
         document.querySelectorAll('input[name="edit-permission"]').forEach(cb => {
             cb.checked = permissions.includes(cb.value);
         });
+
+        // Populate and Set departments
+        await app.renderDepartmentAccessCheckboxes('edit-user-departments', 'edit-dept-access', user.allowedDepIds);
 
         const modal = document.getElementById('edit-user-modal');
         modal.classList.remove('hidden');
@@ -796,19 +811,23 @@ window.app = {
         const permissionCheckboxes = document.querySelectorAll('input[name="edit-permission"]:checked');
         const permissions = Array.from(permissionCheckboxes).map(cb => cb.value).join(',');
 
+        const deptCheckboxes = document.querySelectorAll('input[name="edit-dept-access"]:checked');
+        const allowedDepIds = Array.from(deptCheckboxes).map(cb => cb.value).join(',');
+
         if (!name || !pin) {
             app.showToast('Name and PIN are required.', 'error');
             return;
         }
 
         try {
-            await db.users.update(id, { name, pin, permissions });
+            await db.users.update(id, { name, pin, permissions, allowedDepIds });
 
             // If I updated myself, sync state
             if (app.state.currentUser && app.state.currentUser.id === id) {
                 app.state.currentUser.name = name;
                 app.state.currentUser.pin = pin;
                 app.state.currentUser.permissions = permissions;
+                app.state.currentUser.allowedDepIds = allowedDepIds;
                 app.updateUIForUser(app.state.currentUser);
             }
 
@@ -819,6 +838,31 @@ window.app = {
             console.error("Error updating user", e);
             app.showToast('Failed to update user.', 'error');
         }
+    },
+
+    renderDepartmentAccessCheckboxes: async (containerId, nameAttr, selectedIds = '') => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.innerHTML = '';
+        const depts = await db.departments.toArray();
+        const selectedList = selectedIds ? selectedIds.split(',') : [];
+
+        if (depts.length === 0) {
+            container.innerHTML = '<p class="text-[10px] text-slate-400 italic col-span-2 text-center py-2">No departments found. Create them in Departments section first.</p>';
+            return;
+        }
+
+        depts.forEach(d => {
+            const label = document.createElement('label');
+            label.className = 'flex items-center gap-2 text-[11px] font-medium text-slate-600 cursor-pointer hover:text-brand-600 transition-colors bg-white px-2 py-1.5 rounded-lg border border-slate-100 shadow-sm';
+            label.innerHTML = `
+                <input type="checkbox" name="${nameAttr}" value="${d.id}" ${selectedList.includes(d.id.toString()) ? 'checked' : ''}
+                    class="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                <span class="truncate">${d.name}</span>
+            `;
+            container.appendChild(label);
+        });
     },
     // --- Departments Logic ---
     loadDepartments: async () => {
@@ -1487,13 +1531,17 @@ window.app = {
 
         // Strict visibility for standard users
         if (app.state.currentUser.role !== 'admin') {
+            const allowedDepIds = (app.state.currentUser.allowedDepIds || '').split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
+
             tickets = tickets.filter(t =>
                 // Show all Unassigned tickets that are OPEN
                 (t.status === 'Open' && (t.assigneeId === null || t.assigneeId === 'Unassigned')) ||
                 // Show tickets ASSIGNED to current user
                 (t.assigneeId === app.state.currentUser.id) ||
                 // Show tickets CREATED by current user
-                (t.userId === app.state.currentUser.id)
+                (t.userId === app.state.currentUser.id) ||
+                // Show tickets in ALLOWED DEPARTMENTS
+                (t.departmentId && allowedDepIds.includes(parseInt(t.departmentId)))
             );
         }
 

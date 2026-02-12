@@ -2,8 +2,8 @@
 
 window.db = new Dexie("CallCenterDB");
 
-db.version(6).stores({
-  users: "++id, name, pin, role, permissions",
+db.version(7).stores({
+  users: "++id, name, pin, role, permissions, allowedDepIds",
   calls: "++id, clientName, duration, timestamp, userId, dateString",
   activities: "++id, title, status, timestamp, userId",
   tickets: "++id, description, status, priority, createdAt, userId, callId, dateString, assigneeId, clientName, timeDuration, departmentId",
